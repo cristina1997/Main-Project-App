@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item android:id="@+id/nav_profile"
+            android:icon="@drawable/ic_profile"
+            android:title="Profile"/>
+        <item android:id="@+id/nav_message"
+            android:icon="@drawable/ic_message"
+            android:title="Message"/>
+    </group>
+
+
+    <item android:title="Actions">
+        <menu>
+            <item android:id="@+id/nav_call_911"
+                android:icon="@drawable/ic_call_911"
+                android:title="Emergency Call"/>
+            <item android:id="@+id/nav_add_photo"
+                android:icon="@drawable/ic_add_photo"
+                android:title="Image Upload"/>
+        </menu>
+    </item>
+
+
+    <item
+        android:id="@+id/nav_logout"
+        android:title="Log Out"
+        android:icon="@drawable/ic_logout"/>
+
+</menu>

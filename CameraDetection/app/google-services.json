@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "56675147413",
+    "firebase_url": "https://camera-detection-73a01.firebaseio.com",
+    "project_id": "camera-detection-73a01",
+    "storage_bucket": "camera-detection-73a01.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:56675147413:android:2fc9e6ebc1d4b2ab",
+        "android_client_info": {
+          "package_name": "sw.gmit.ie.crist.cameradetection"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "56675147413-s387p16oo1tbpba4noopi07vav4nnvi1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "sw.gmit.ie.crist.cameradetection",
+            "certificate_hash": "fe68e4e11a70cf11ecca4f14ca0fec2e60bab380"
+          }
+        },
+        {
+          "client_id": "56675147413-nqgj28aegqiftq6knihehoatcrmmrrks.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeThFs0ostHjCl-41ThMrapof5_wAok-I"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "56675147413-nqgj28aegqiftq6knihehoatcrmmrrks.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
