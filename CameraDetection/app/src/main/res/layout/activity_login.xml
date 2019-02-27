@@ -21,7 +21,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/logPassword"
+        android:id="@+id/regName"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
         android:layout_marginStart="8dp"
@@ -46,7 +46,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logPassword"
+        app:layout_constraintTop_toBottomOf="@+id/regName"
         app:layout_constraintVertical_bias="0.119" />
 
     <ProgressBar
@@ -62,7 +62,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logPassword"
+        app:layout_constraintTop_toBottomOf="@+id/regName"
         app:layout_constraintVertical_bias="0.119" />
 
     <Button

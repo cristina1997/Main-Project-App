@@ -1,27 +1,31 @@
 package sw.gmit.ie.crist.cameradetection.Activities;
 
-import android.content.Intent;
+import android.content.*;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.os.Handler;
+import android.support.annotation.*;
 import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
+import android.view.*;
+import android.webkit.MimeTypeMap;
+import android.widget.*;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
+import com.google.android.gms.auth.api.signin.internal.Storage;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
+import com.google.firebase.database.*;
+import com.google.firebase.storage.*;
 import com.squareup.picasso.Picasso;
 
-import static android.app.Activity.RESULT_OK;
+import org.w3c.dom.Text;
 
-import java.net.URI;
+import static android.app.Activity.RESULT_OK;
 
 import sw.gmit.ie.crist.cameradetection.R;
 
@@ -29,26 +33,59 @@ public class ProfileFragment extends Fragment {
     private static final int PICK_IMAGE_REQUEST = 1;
 
     private StorageReference mStorageRef;
-    private Button btnChooseImg;
-    private Button btnUploadImg;
+    private Button btnChooseImg, btnUploadImg;
     private ImageView imgView;
+    private EditText imgText;
     private ProgressBar imgProgressBar;
+    private FirebaseUser user;
 
     private Uri imgURI;
+
+    private StorageReference storageRef;
+    private DatabaseReference databaseRef;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
 
+        initVariables(rootView);
+
+        user = FirebaseAuth.getInstance().getCurrentUser();
+
+        for (UserInfo userInfo : user.getProviderData()){
+            if (userInfo.getDisplayName() == null){
+                showMessage("User Name is null");
+            } else {
+                showMessage(userInfo.getDisplayName());
+            }
+        }
+
+        String userDisplayName = user.getDisplayName();
+
+        storageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName);
+        databaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName);
+
+//        storageRef = FirebaseStorage.getInstance().getReference("images/");
+//        databaseRef = FirebaseDatabase.getInstance().getReference("images/");
+
+        pickImage();
+        uploadImage();
+
+        return rootView;
+    }
+
+    private void initVariables(View rootView) {
         mStorageRef = FirebaseStorage.getInstance().getReference();
         btnChooseImg = (Button) rootView.findViewById(R.id.chooseImgBtn);
         btnUploadImg = (Button) rootView.findViewById(R.id.uploadBtn);
         imgView = (ImageView) rootView.findViewById(R.id.imageView);
+        imgText = (EditText) rootView.findViewById(R.id.imgName);
         imgProgressBar = (ProgressBar) rootView.findViewById(R.id.imgProgress);
+    }
 
-
-        btnChooseImg.setOnClickListener(new View.OnClickListener(){
+    private void pickImage() {
+        btnChooseImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
@@ -56,13 +93,71 @@ public class ProfileFragment extends Fragment {
                 intent.setAction(Intent.ACTION_GET_CONTENT);
                 startActivityForResult(intent, PICK_IMAGE_REQUEST);
 
-
             }
         });
+    }
 
+    private void uploadImage() {
+        btnUploadImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                uploadFile();
+            }
+        });
+    }
 
-        return rootView;
+    private String getFileExtension(Uri uri) {
+        // get file extension from a file
+        ContentResolver cR = getActivity().getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton();
+        return mime.getExtensionFromMimeType(cR.getType(uri));
+    }
 
+    private void uploadFile() {
+        if (imgURI != null) {
+            StorageReference fileReference = storageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
+
+            fileReference.putFile(imgURI)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            //  Successful upload
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    imgProgressBar.setProgress(0);
+
+                                }
+                            }, 500);
+
+                            showMessage("Upload successful");
+                            Upload upload = new Upload(imgText.getText().toString().trim(),
+                                    taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
+                            String uploadId = databaseRef.push().getKey();
+                            databaseRef.child(uploadId).setValue(upload);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            //  Failed upload
+                            showMessage("Failed to upload image");
+
+                        }
+                    })
+                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                            //  Progressing upload - update progress bar with current progress
+                            double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+                            imgProgressBar.setProgress((int) progress);
+                        }
+                    });
+
+        } else {
+            showMessage("No file selected");
+        }
     }
 
     @Override
@@ -70,11 +165,15 @@ public class ProfileFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
-                && data != null && data.getData() != null){
+                && data != null && data.getData() != null) {
             imgURI = data.getData();
 
 //            Picasso.with(this).load(imgURI).into(imgView);
             imgView.setImageURI(imgURI);
         }
+    }
+
+    private void showMessage(String message) {
+        Toast.makeText(getActivity().getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 }

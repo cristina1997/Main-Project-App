@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.*;
 
 import com.google.android.gms.tasks.*;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.*;
 
 import sw.gmit.ie.crist.cameradetection.R;
@@ -20,24 +19,47 @@ public class Login extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private Intent HomeActivity, RegisterActivity;
 
+    private Home home = new Home();
+
+    @Override
+    /***************************************************/
+    /********* At the start of the application *********/
+    /***************************************************/
+    protected void onStart() {
+        super.onStart();
+        // If the user is already connect then redirect him/her redirect user to the home page
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (home.getSignedIn() == true && user != null){ // or if the user does not exist
+            updateHomeUI();
+//            showMessage(user.getUid());
+        }
+
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FirebaseApp.initializeApp(this);
-        setContentView(R.layout.activity_login);
-        userEmail = findViewById(R.id.logEmail);
-        userPass = findViewById(R.id.logPassword);
-        btnLogin = findViewById(R.id.logBtn);
-        loginProgress = findViewById(R.id.logBar);
-        btnRegActivity = findViewById(R.id.regActivityBtn);
+//        FirebaseApp.initializeApp(this);
+
+        initVariables();
 
         loginProgress.setVisibility(View.INVISIBLE);
 
         mAuth = FirebaseAuth.getInstance();
 
-        registerActivity();
-        loginActivity();
+        registerActivity();                 // user can register if they press the registration button
+        loginActivity();                    // if the user isn't already connect - redirect to login page so that they can log in
 
+    }
+
+    private void initVariables() {
+        setContentView(R.layout.activity_login);
+        userEmail = findViewById(R.id.logEmail);
+        userPass = findViewById(R.id.regName);
+        btnLogin = findViewById(R.id.logBtn);
+        loginProgress = findViewById(R.id.logBar);
+        btnRegActivity = findViewById(R.id.regActivityBtn);
     }
 
     private void registerActivity() {
@@ -104,22 +126,14 @@ public class Login extends AppCompatActivity {
     }
 
     private void updateHomeUI() {
-        HomeActivity = new Intent(this,sw.gmit.ie.crist.cameradetection.Activities.Home.class);
+        HomeActivity = new Intent(getApplicationContext(),Home.class);
         startActivity(HomeActivity);
+        home.setSignedIn(true);
         finish();
     }
 
     private void showMessage(String message) {
-        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        FirebaseUser user = mAuth.getCurrentUser();
-        // user is already connect - redirect user to home page
-        updateHomeUI();
-    }
-
 
 }

@@ -7,7 +7,7 @@
     tools:context=".Activities.Register">
 
     <EditText
-        android:id="@+id/logPassword"
+        android:id="@+id/regName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -33,7 +33,7 @@
         android:inputType="textEmailAddress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logPassword" />
+        app:layout_constraintTop_toBottomOf="@+id/regName" />
 
     <EditText
         android:id="@+id/regPass"
