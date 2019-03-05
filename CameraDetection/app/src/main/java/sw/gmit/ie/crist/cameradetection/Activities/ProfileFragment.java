@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.*;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.view.*;
 import android.webkit.MimeTypeMap;
 import android.widget.*;
@@ -38,6 +39,15 @@ public class ProfileFragment extends Fragment {
     private EditText imgText;
     private ProgressBar imgProgressBar;
     private FirebaseUser user;
+    String userDisplayName, personName;
+
+    public EditText getImgText() {
+        return imgText;
+    }
+
+    public void setImgText(EditText imgText) {
+        this.imgText = imgText;
+    }
 
     private Uri imgURI;
 
@@ -53,25 +63,19 @@ public class ProfileFragment extends Fragment {
 
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        for (UserInfo userInfo : user.getProviderData()){
-            if (userInfo.getDisplayName() == null){
-                showMessage("User Name is null");
-            } else {
-                showMessage(userInfo.getDisplayName());
-            }
-        }
+        // verify if the User's name was added to the database
+//        if (user.getDisplayName() == null){
+//            showMessage("User Name is null");
+//        } else {
+//            showMessage(user.getDisplayName());
+//        }
 
-        String userDisplayName = user.getDisplayName();
-
-        storageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName);
-        databaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName);
 
 //        storageRef = FirebaseStorage.getInstance().getReference("images/");
 //        databaseRef = FirebaseDatabase.getInstance().getReference("images/");
 
         pickImage();
         uploadImage();
-
         return rootView;
     }
 
@@ -88,13 +92,36 @@ public class ProfileFragment extends Fragment {
         btnChooseImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(intent, PICK_IMAGE_REQUEST);
+                isTextEmpty();
 
+                if (isTextEmpty() == false){
+                    Intent intent = new Intent();
+                    intent.setType("image/*");
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    startActivityForResult(intent, PICK_IMAGE_REQUEST);
+                }
+                firebaseStorage();
             }
         });
+
+
+    }
+
+    private void firebaseStorage(){
+        userDisplayName = user.getDisplayName();
+        String personName = getImgText().getText().toString();
+        storageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
+        databaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
+    }
+
+     private boolean isTextEmpty() {
+        if( TextUtils.isEmpty(imgText.getText())){
+            imgText.setError( "Enter person's name" );
+            return true;
+        } else {
+            setImgText(imgText);
+            return false;
+        }
     }
 
     private void uploadImage() {
@@ -104,6 +131,7 @@ public class ProfileFragment extends Fragment {
                 uploadFile();
             }
         });
+
     }
 
     private String getFileExtension(Uri uri) {
@@ -136,6 +164,8 @@ public class ProfileFragment extends Fragment {
                                     taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
                             String uploadId = databaseRef.push().getKey();
                             databaseRef.child(uploadId).setValue(upload);
+
+
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {

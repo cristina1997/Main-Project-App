@@ -82,6 +82,9 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             case R.id.nav_add_photo:
                 takePicture();
                 break;
+            case R.id.nav_take_photo:
+                showMessage("Taking a picture");
+                break;
             default:
                 break;
         }
