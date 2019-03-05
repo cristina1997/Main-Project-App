@@ -21,7 +21,10 @@
                 android:title="Emergency Call"/>
             <item android:id="@+id/nav_add_photo"
                 android:icon="@drawable/ic_add_photo"
-                android:title="Image Upload"/>
+                android:title="Upload Image"/>
+            <item android:id="@+id/nav_take_photo"
+                android:icon="@drawable/ic_take_photo"
+                android:title="Take Picture"/>
         </menu>
     </item>
 
