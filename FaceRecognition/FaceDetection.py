@@ -61,12 +61,6 @@ displayName = tuple(tree_obj.execute('$..displayName'))
 
 displayName = (displayName[1])
 
-face = ""
-
-
-
-
-
 prefix='images/' + displayName + '/' 
 folder = {}
 char_list = ['/images/' + displayName]
@@ -82,23 +76,6 @@ print (prefixes)
 print (type(prefixes))
 test = ', '.join(prefixes)
 print (test)
-
-
-#cap = cv2.VideoCapture(0)  
-#ret, frame = cap.read()
-#fourcc = cv2.VideoWriter_fourcc(*'XVID')
-#out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
-
-
-
-
- 
-  
-  
-    
-
-
-    
 
 
 
@@ -179,14 +156,7 @@ def training_faces():
     recognizer.save("recognizers/face-trainner.yml")
     
 
-
-
-
 #training_faces()
-
-
-
-
 
 
 def record_video():
@@ -205,14 +175,14 @@ def record_video():
         if ret==True:
             frame = cv2.flip(frame,0)
             out.write(frame)
-            cv2.imshow('frame',frame)
+            #cv2.imshow('frame',frame)
         else:
             break
     
     cap.release()
     out.release()
     cv2.destroyAllWindows()
-    motion_detection()
+    main()
 
 
 
@@ -261,10 +231,10 @@ def face_detection():
         		cv2.putText(frame, "unrecognized", (x,y), font, 1, color, stroke, cv2.LINE_AA)
         		unrecognized = "unrecognized.png"
         		cv2.imwrite(unrecognized,roi_color) 
-        		face = "unrecognized"   
-        		if face == ("unrecognized"):
+        		#face = "unrecognized"   
+        		#if face == ("unrecognized"):
         			               		   
-        			record_video()
+        			#record_video()
 
 #        		cap.release()
 #        		cv2.destroyAllWindows()        		
@@ -320,8 +290,8 @@ def face_detection():
         	#for (ex,ey,ew,eh) in subitems:
         	#	cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
         # Display the resulting frame
-        cv2.imshow('frame',frame)
-        
+        #cv2.imshow('frame',frame)
+        record_video()        
         if cv2.waitKey(20) & 0xFF == ord('q'):
             break
 #        if face == ("unrecognized"):
