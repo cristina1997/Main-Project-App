@@ -1,9 +1,5 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 11 16:12:19 2019
-
-@author: Stoyan
-"""
+#https://smallguysit.com/index.php/2017/03/13/python-tkinter-password-entry-box/
+import tkinter
 import cv2 
 import os
 import numpy as np
@@ -18,6 +14,80 @@ import time
 from imutils.video import VideoStream
 import imutils
 import datetime
+
+
+
+
+main = tkinter.Tk()
+main.title('Authentication Box')
+main.geometry('225x150')
+
+def clear_widget(event):
+
+    # will clear out any entry boxes defined below when the user shifts
+    # focus to the widgets defined below
+    if username_box == main.focus_get() and username_box.get() == 'Enter Username':
+        username_box.delete(0, tkinter.END)
+    elif password_box == password_box.focus_get() and password_box.get() == '     ':
+        password_box.delete(0, tkinter.END)
+
+def repopulate_defaults(event):
+
+    # will repopulate the default text previously inside the entry boxes defined below if
+    # the user does not put anything in while focused and changes focus to another widget
+    if username_box != main.focus_get() and username_box.get() == '':
+        username_box.insert(0, 'Enter Username')
+    elif password_box != main.focus_get() and password_box.get() == '':
+        password_box.insert(0, '     ')
+
+def login(*event):
+    global email, password
+    # Able to be called from a key binding or a button click because of the '*event'
+    print (('Username: ') + username_box.get())
+    print (('Password: ') + password_box.get())
+    
+
+    email = username_box.get() 
+    password = password_box.get() 
+    
+    
+    main.destroy()
+    
+    
+    
+# defines a grid 50 x 50 cells in the main window
+rows = 0
+while rows < 10:
+    main.rowconfigure(rows, weight=1)
+    main.columnconfigure(rows, weight=1)
+    rows += 1
+
+
+# adds username entry widget and defines its properties
+username_box = tkinter.Entry(main)
+username_box.insert(0, 'Enter Username')
+username_box.bind("<FocusIn>", clear_widget)
+username_box.bind('<FocusOut>', repopulate_defaults)
+username_box.grid(row=1, column=5, sticky='NS')
+
+
+# adds password entry widget and defines its properties
+password_box = tkinter.Entry(main, show='*')
+password_box.insert(0, '     ')
+password_box.bind("<FocusIn>", clear_widget)
+password_box.bind('<FocusOut>', repopulate_defaults)
+password_box.bind('<Return>', login)
+password_box.grid(row=2, column=5, sticky='NS')
+
+
+# adds login button and defines its properties
+login_btn = tkinter.Button(main, text='Login', command=login)
+login_btn.bind('<Return>', login)
+login_btn.grid(row=5, column=5, sticky='NESW')
+
+
+main.mainloop()
+
 
 
 
@@ -45,12 +115,16 @@ firebase = pyrebase.initialize_app(config)
 
 auth = firebase.auth()
 
-email = input ('Please enter your email\n')
-password = input ('Please enter your password\n')
+#email = input ('Please enter your email\n')
+#password = input ('Please enter your password\n')
+
+
+print ("username: " + email,"password: " + password)
+
 
 #user = auth.create_user_with_email_and_password(email,password)
 user = auth.sign_in_with_email_and_password(email,password)
-
+#user = auth.sign_in_with_email_and_password(email,password)
 users = (auth.get_account_info(user['idToken']))
 
 json.dump(users, open("users.txt",'w'))
@@ -79,6 +153,9 @@ print (test)
 
 
 
+
+
+
 def downloading_files():
     for blob in blobs:
         list = blob.name
@@ -103,9 +180,6 @@ def checking_folder():
             os.mkdir(folder)
 
 
-
-#checking_folder()       
-#downloading_files()
 
 
 
@@ -155,8 +229,6 @@ def training_faces():
     recognizer.train(x_train, np.array(y_labels))
     recognizer.save("recognizers/face-trainner.yml")
     
-
-#training_faces()
 
 
 def record_video():
@@ -230,53 +302,7 @@ def face_detection():
         		stroke = 2                
         		cv2.putText(frame, "unrecognized", (x,y), font, 1, color, stroke, cv2.LINE_AA)
         		unrecognized = "unrecognized.png"
-        		cv2.imwrite(unrecognized,roi_color) 
-        		#face = "unrecognized"   
-        		#if face == ("unrecognized"):
-        			               		   
-        			#record_video()
-
-#        		cap.release()
-#        		cv2.destroyAllWindows()        		
-#            
-#        		cap = cv2.VideoCapture(0)
-#        		          
-#                  
-#            # The duration in seconds of the video captured
-#        		capture_duration = 10       
-#        		fourcc = cv2.VideoWriter_fourcc(*'XVID')
-#        		out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
-#        		cv2.imshow('frame',frame)
-#        		start_time = time.time()
-#        		while( int(time.time() - start_time) < capture_duration ):
-#        			ret, frame = cap.read()
-#
-#        			if ret==True:
-#        				out.write(frame) 
-#        				#cv2.imshow('frame',frame)
-##        				print("in loop")
-##        			               
-#        			else:
-#        				break                    
-#        		#out.release()                    
-                    
-                    
-#        			#ret1, frame1 = cap1.read()
-#        			if ret==True: 
-#        				                            
-          				
-##        				font = cv2.FONT_HERSHEY_SIMPLEX                
-##        				name = labels[id_]            
-##        				color = (255, 255, 255)             
-##        				stroke = 2                
-##        				cv2.putText(frame, "RECORDING", (x,y), font, 1, color, stroke, cv2.LINE_AA)
-##        				cv2.imshow('Recording',frame)
-#        			else:
-#        				break   
-        		#cap1.release()
-#        		out.release()
-        		#cv2.destroyWindow("recording")                 
-                
+        		cv2.imwrite(unrecognized,roi_color)                                
             
         	#img_item = "7.png"
         	#cv2.imwrite(img_item, roi_color)
@@ -301,12 +327,7 @@ def face_detection():
     cap.release()
     cv2.destroyAllWindows()
     
-
-
-
-#face_detection()
-    
-    
+ 
     
 def motion_detection():
     vs = VideoStream(src=0).start()
