@@ -76,6 +76,9 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                 // redirect to the MessageFragment java class
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MessageFragment()).commit();
                 break;
+            case R.id.nav_gallery:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new GalleryFragment()).commit();
+                break;
             case R.id.nav_call_911:
                 showMessage("Calling 911");
                 break;

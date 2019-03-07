@@ -24,6 +24,8 @@ public class Register extends AppCompatActivity {
     private Button regBtn;
     private FirebaseAuth mAuth;
     private Intent LoginActivity;
+    private DatabaseReference userDatabaseRef;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +36,7 @@ public class Register extends AppCompatActivity {
         registerProgress.setVisibility(View.INVISIBLE);
 
         mAuth = FirebaseAuth.getInstance();
-
+        userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
         register();
 
     }
@@ -128,11 +130,10 @@ public class Register extends AppCompatActivity {
     }
 
     private void createUserDatabase(final String name, String email) {
-        User user = new User(name, email);
+        user = new User(name, email);
 
 
-        FirebaseDatabase.getInstance().getReference("users")
-                .child(mAuth.getUid())
+            userDatabaseRef.child(mAuth.getUid())
                 .setValue(user);
     }
 

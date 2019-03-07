@@ -13,13 +13,10 @@ import android.widget.*;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
-import com.google.android.gms.auth.api.signin.internal.Storage;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserInfo;
 import com.google.firebase.database.*;
 import com.google.firebase.storage.*;
 import com.squareup.picasso.Picasso;
@@ -33,14 +30,14 @@ import sw.gmit.ie.crist.cameradetection.R;
 public class ProfileFragment extends Fragment {
     private static final int PICK_IMAGE_REQUEST = 1;
 
-    private StorageReference mStorageRef;
     private Button btnChooseImg, btnUploadImg;
     private ImageView imgView;
     private EditText imgText;
     private ProgressBar imgProgressBar;
     private FirebaseUser user;
-    String userDisplayName, personName;
-
+    private String userDisplayName, personName;
+    private StorageTask uploadTask;
+    private FirebaseAuth mAuth;
     public EditText getImgText() {
         return imgText;
     }
@@ -51,8 +48,8 @@ public class ProfileFragment extends Fragment {
 
     private Uri imgURI;
 
-    private StorageReference storageRef;
-    private DatabaseReference databaseRef;
+    private StorageReference imageStorageRef;
+    private DatabaseReference imageDatabaseRef;
 
     @Nullable
     @Override
@@ -62,7 +59,7 @@ public class ProfileFragment extends Fragment {
         initVariables(rootView);
 
         user = FirebaseAuth.getInstance().getCurrentUser();
-
+        mAuth = FirebaseAuth.getInstance();
         // verify if the User's name was added to the database
 //        if (user.getDisplayName() == null){
 //            showMessage("User Name is null");
@@ -71,8 +68,8 @@ public class ProfileFragment extends Fragment {
 //        }
 
 
-//        storageRef = FirebaseStorage.getInstance().getReference("images/");
-//        databaseRef = FirebaseDatabase.getInstance().getReference("images/");
+//        imageStorageRef = FirebaseStorage.getInstance().getReference("images/");
+//        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/");
 
         pickImage();
         uploadImage();
@@ -80,7 +77,6 @@ public class ProfileFragment extends Fragment {
     }
 
     private void initVariables(View rootView) {
-        mStorageRef = FirebaseStorage.getInstance().getReference();
         btnChooseImg = (Button) rootView.findViewById(R.id.chooseImgBtn);
         btnUploadImg = (Button) rootView.findViewById(R.id.uploadBtn);
         imgView = (ImageView) rootView.findViewById(R.id.imageView);
@@ -100,18 +96,19 @@ public class ProfileFragment extends Fragment {
                     intent.setAction(Intent.ACTION_GET_CONTENT);
                     startActivityForResult(intent, PICK_IMAGE_REQUEST);
                 }
-                firebaseStorage();
+                userFirebaseStorage();
             }
         });
 
 
     }
 
-    private void firebaseStorage(){
+    private void userFirebaseStorage(){
         userDisplayName = user.getDisplayName();
         String personName = getImgText().getText().toString();
-        storageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
-        databaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
+        imageStorageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
+        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
+//        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images");
     }
 
      private boolean isTextEmpty() {
@@ -128,14 +125,19 @@ public class ProfileFragment extends Fragment {
         btnUploadImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                uploadFile();
+                if (uploadTask != null && uploadTask.isInProgress()){
+                    showMessage("Upload in progress");
+                } else {
+                    uploadFile();
+                }
+
             }
         });
 
     }
 
     private String getFileExtension(Uri uri) {
-        // get file extension from a file
+        // get extension from all files
         ContentResolver cR = getActivity().getContentResolver();
         MimeTypeMap mime = MimeTypeMap.getSingleton();
         return mime.getExtensionFromMimeType(cR.getType(uri));
@@ -143,47 +145,46 @@ public class ProfileFragment extends Fragment {
 
     private void uploadFile() {
         if (imgURI != null) {
-            StorageReference fileReference = storageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
+            StorageReference fileReference = imageStorageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
 
-            fileReference.putFile(imgURI)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            //  Successful upload
-                            Handler handler = new Handler();
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    imgProgressBar.setProgress(0);
+            uploadTask = fileReference.putFile(imgURI)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        //  Successful upload
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                imgProgressBar.setProgress(0);
 
-                                }
-                            }, 500);
+                            }
+                        }, 500);
 
-                            showMessage("Upload successful");
-                            Upload upload = new Upload(imgText.getText().toString().trim(),
-                                    taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
-                            String uploadId = databaseRef.push().getKey();
-                            databaseRef.child(uploadId).setValue(upload);
+                        showMessage("Upload successful");
+                        Upload upload = new Upload(imgText.getText().toString().trim(),
+                                taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
+                        String uploadId = imageDatabaseRef.push().getKey();
 
+                        imageDatabaseRef.child(uploadId).setValue(upload);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        //  Failed upload
+                        showMessage("Failed to upload image");
 
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            //  Failed upload
-                            showMessage("Failed to upload image");
-
-                        }
-                    })
-                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                            //  Progressing upload - update progress bar with current progress
-                            double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
-                            imgProgressBar.setProgress((int) progress);
-                        }
-                    });
+                    }
+                })
+                .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                        //  Progressing upload - update progress bar with current progress
+                        double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+                        imgProgressBar.setProgress((int) progress);
+                    }
+                });
 
         } else {
             showMessage("No file selected");
