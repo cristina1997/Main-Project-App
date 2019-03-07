@@ -131,8 +131,6 @@ public class Register extends AppCompatActivity {
 
     private void createUserDatabase(final String name, String email) {
         user = new User(name, email);
-
-
             userDatabaseRef.child(mAuth.getUid())
                 .setValue(user);
     }
