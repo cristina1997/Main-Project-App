@@ -39,7 +39,8 @@ public class ProfileFragment extends Fragment {
     private EditText imgText;
     private ProgressBar imgProgressBar;
     private FirebaseUser user;
-    String userDisplayName, personName;
+    private String userDisplayName, personName;
+    private StorageTask uploadTask;
 
     public EditText getImgText() {
         return imgText;
@@ -128,7 +129,12 @@ public class ProfileFragment extends Fragment {
         btnUploadImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                uploadFile();
+                if (uploadTask != null && uploadTask.isInProgress()){
+                    showMessage("Upload in progress");
+                } else {
+                    uploadFile();
+                }
+
             }
         });
 
@@ -145,7 +151,7 @@ public class ProfileFragment extends Fragment {
         if (imgURI != null) {
             StorageReference fileReference = storageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
 
-            fileReference.putFile(imgURI)
+            uploadTask = fileReference.putFile(imgURI)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -157,7 +163,7 @@ public class ProfileFragment extends Fragment {
                                     imgProgressBar.setProgress(0);
 
                                 }
-                            }, 500);
+                            }, 50);
 
                             showMessage("Upload successful");
                             Upload upload = new Upload(imgText.getText().toString().trim(),
