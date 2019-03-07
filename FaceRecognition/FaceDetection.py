@@ -153,8 +153,27 @@ print (test)
 
 
 
-
-
+def uploading_files():
+    # Enable Storage
+    client = storage.Client()
+    
+    # Reference an existing bucket.
+    bucket = client.get_bucket('camera-detection-73a01.appspot.com')
+    print (recognized)
+    print (unknown)
+    if (recognized == "recognized"):
+        #Upload a local file to a new file to be created in your bucket.
+        zebraBlob = bucket.blob(prefix + name + "/"  + filename)
+        zebraBlob.upload_from_filename(filename=filename)
+    else:
+        recognized == ""
+        
+    if (unknown == "unrecognized"):
+        zebraBlob = bucket.blob(prefix + "unknown" + "/"  + filename)
+        zebraBlob.upload_from_filename(filename=filename)
+        
+    else:
+        unknown == ""
 
 def downloading_files():
     for blob in blobs:
@@ -232,20 +251,23 @@ def training_faces():
 
 
 def record_video():
-
+    global filename
     # The duration in seconds of the video captured
-    capture_duration = 10
+    capture_duration = 4
     
     cap = cv2.VideoCapture(0)
-    
+    filename = ( datetime.datetime.now().strftime("%A%d%B%Y%I%M%S%p")+".avi")
+    print (filename)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
+    out = cv2.VideoWriter(filename,fourcc, 20.0, (640,480))
     
     start_time = time.time()
     while( int(time.time() - start_time) < capture_duration ):
         ret, frame = cap.read()
         if ret==True:
-            frame = cv2.flip(frame,0)
+            #frame = cv2.flip(frame,0)
+            cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
+    		(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
             out.write(frame)
             #cv2.imshow('frame',frame)
         else:
@@ -254,6 +276,7 @@ def record_video():
     cap.release()
     out.release()
     cv2.destroyAllWindows()
+    uploading_files()
     main()
 
 
@@ -263,7 +286,9 @@ def face_detection():
     face_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_frontalface_alt2.xml')
    # eye_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_eye.xml')
   #  smile_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_smile.xml')
-    
+    global name
+    global unknown
+    global recognized
     
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     recognizer.read("./recognizers/face-trainner.yml")
@@ -295,6 +320,8 @@ def face_detection():
         		color = (255, 255, 255)
         		stroke = 2
         		cv2.putText(frame, name, (x,y), font, 1, color, stroke, cv2.LINE_AA)
+        		recognized = "recognized" 
+        		unknown = "recognized"                
         	else:
         		font = cv2.FONT_HERSHEY_SIMPLEX                
         		name = labels[id_]            
@@ -303,7 +330,8 @@ def face_detection():
         		cv2.putText(frame, "unrecognized", (x,y), font, 1, color, stroke, cv2.LINE_AA)
         		unrecognized = "unrecognized.png"
         		cv2.imwrite(unrecognized,roi_color)                                
-            
+        		unknown = "unrecognized"
+        		unknown = "unrecognized"
         	#img_item = "7.png"
         	#cv2.imwrite(img_item, roi_color)
     
@@ -389,6 +417,7 @@ def motion_detection():
     		cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
     	cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
     		(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+    	
     
     	# show the frame and record if the user presses a key
     	cv2.imshow("Security Feed", frame)
