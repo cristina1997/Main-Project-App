@@ -107,8 +107,8 @@ public class ProfileFragment extends Fragment {
         userDisplayName = user.getDisplayName();
         String personName = getImgText().getText().toString();
         imageStorageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
-        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
-//        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images");
+//        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
+        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images");
     }
 
      private boolean isTextEmpty() {
