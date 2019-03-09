@@ -82,8 +82,7 @@ public class Login extends AppCompatActivity {
                 if (email.isEmpty() || password.isEmpty()){
                     showMessage("Please verify all fields");
                     showBtn();
-                }
-                else {
+                } else {
                     signIn(email, password);
                 }
             }
@@ -102,13 +101,11 @@ public class Login extends AppCompatActivity {
     }
 
     private void signIn(String email, String password) {
-        showMessage("Logging in");
 
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()){
-                    showMessage("Is successful");
                     showBtn();
                     updateHomeUI();
                 } else {

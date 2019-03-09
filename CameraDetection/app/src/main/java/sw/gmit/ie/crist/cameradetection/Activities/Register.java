@@ -68,7 +68,8 @@ public class Register extends AppCompatActivity {
 
                     if (!pass.equals(pass2)){
                         // error message: passwords must be the same
-                        showMessage("Both passwords must be the same");
+                        userPassConf.setError("Both passwords must be the same");
+//                        showMessage("Both passwords must be the same");
                     } else {
                         // error message: all fields must be filled
                         showMessage("All fields must be filled");
@@ -92,7 +93,6 @@ public class Register extends AppCompatActivity {
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
                         // registration successful
-                        showMessage("Account created");
 
                         createUserDatabase(name, email);
 
@@ -131,6 +131,7 @@ public class Register extends AppCompatActivity {
 
     private void createUserDatabase(final String name, String email) {
         user = new User(name, email);
+
             userDatabaseRef.child(mAuth.getUid())
                 .setValue(user);
     }

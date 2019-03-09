@@ -31,7 +31,7 @@ public class ProfileFragment extends Fragment {
     private static final int PICK_IMAGE_REQUEST = 1;
 
     private Button btnChooseImg, btnUploadImg;
-    private ImageView imgView;
+    protected ImageView imgView;
     private EditText imgText;
     private ProgressBar imgProgressBar;
     private FirebaseUser user;
@@ -45,7 +45,6 @@ public class ProfileFragment extends Fragment {
     public void setImgText(EditText imgText) {
         this.imgText = imgText;
     }
-
     private Uri imgURI;
 
     private StorageReference imageStorageRef;
@@ -126,7 +125,6 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (uploadTask != null && uploadTask.isInProgress()){
-                    showMessage("Upload in progress");
                 } else {
                     uploadFile();
                 }

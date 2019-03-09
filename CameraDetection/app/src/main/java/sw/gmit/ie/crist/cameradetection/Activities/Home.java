@@ -1,6 +1,8 @@
 package sw.gmit.ie.crist.cameradetection.Activities;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -83,9 +85,10 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                 showMessage("Calling 911");
                 break;
             case R.id.nav_add_photo:
-                takePicture();
+                choosePicture();
                 break;
             case R.id.nav_take_photo:
+                takePicture();
                 showMessage("Taking a picture");
                 break;
             default:
@@ -110,7 +113,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
         switch (item.getItemId()){
             case R.id.logoutBtn:
-                showMessage("Log out button clicked");
                 FirebaseAuth.getInstance().signOut();
                 this.setSignedIn(false);  // not signed in anymore
                 sendToStart();
@@ -133,16 +135,26 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
     }
 
-    private void showMessage(String message) {
-        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
-    }
-
-    private void takePicture() {
+    private void choosePicture() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
+
+    private void takePicture() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, 0);
+
+    }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        Bitmap bitmap  = (Bitmap)data.getExtras().get("data");
+//        ProfileFragment pf = new ProfileFragment();
+//        pf.imgView.setImageBitmap(bitmap);
+//    }
 
     @Override
     public void onBackPressed() {
@@ -152,5 +164,10 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             super.onBackPressed();
         }
     }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+    }
+
 
 }
