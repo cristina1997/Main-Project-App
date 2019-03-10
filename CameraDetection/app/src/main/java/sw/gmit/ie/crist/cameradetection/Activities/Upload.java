@@ -3,7 +3,7 @@ package sw.gmit.ie.crist.cameradetection.Activities;
 import android.app.Activity;
 import android.widget.Toast;
 
-public class Upload extends Activity {
+public class Upload {
     private String name, imgUrl;
 
     public Upload(){
@@ -11,10 +11,6 @@ public class Upload extends Activity {
     }
 
     public Upload(String name, String imgUrl) {
-        if (name.trim().equals("")){
-            showMessage("Please enter a name");
-        }
-
         this.name = name;
         this.imgUrl = imgUrl;
     }
@@ -35,8 +31,8 @@ public class Upload extends Activity {
         this.imgUrl = imgUrl;
     }
 
-    private void showMessage(String message) {
-        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+    @Override
+    public String toString() {
+        return "\nName: " +name + "\nImg Url: " + imgUrl;
     }
-
 }

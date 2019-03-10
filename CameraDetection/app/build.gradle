@@ -26,8 +26,11 @@ dependencies {
     implementation 'com.android.support:design:27.1.1'
     implementation "com.android.support.constraint:constraint-layout:1.1.3"
     implementation 'com.android.support:recyclerview-v7:27.1.1'
+
+    // images
     implementation 'com.android.support:cardview-v7:27.1.1'
     implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.squareup.picasso:picasso-provider:3.0.0-SNAPSHOT'
 
     // firebase
     implementation 'com.google.firebase:firebase-perf:16.2.3'
@@ -38,6 +41,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage:16.0.5'
     implementation 'com.google.firebase:firebase-messaging:17.3.4'
     implementation 'com.pusher:push-notifications-android:1.2.0'
+    implementation 'com.firebaseui:firebase-ui-database:0.4.0'
 
 //    implementation 'com.android.support.cardview-v7:27.1.1'
 //    implementation 'com.android.support.recyclerview-v7:27.1.1'
