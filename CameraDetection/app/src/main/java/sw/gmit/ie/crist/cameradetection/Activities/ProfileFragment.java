@@ -106,8 +106,7 @@ public class ProfileFragment extends Fragment {
         userDisplayName = user.getDisplayName();
         String personName = getImgText().getText().toString();
         imageStorageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
-//        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
-        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images");
+        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName);
     }
 
      private boolean isTextEmpty() {
@@ -143,29 +142,35 @@ public class ProfileFragment extends Fragment {
 
     private void uploadFile() {
         if (imgURI != null) {
-            StorageReference fileReference = imageStorageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
+            final StorageReference fileReference = imageStorageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
 
             uploadTask = fileReference.putFile(imgURI)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         //  Successful upload
-                        Handler handler = new Handler();
-                        handler.postDelayed(new Runnable() {
+                        // Code adapted from: https://stackoverflow.com/questions/50570893/after-upload-a-file-in-android-firebase-storage-how-get-the-file-download-url-g/50572357
+                        fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
-                            public void run() {
-                                imgProgressBar.setProgress(0);
+                            public void onSuccess(Uri uri) {
+                                Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        imgProgressBar.setProgress(0);
 
+                                    }
+                                }, 500);
+
+                                Upload upload = new Upload(imgText.getText().toString().trim(),
+                                       uri.toString());
+                                showMessage("URI: " +uri.toString());
+                                String uploadId = imageDatabaseRef.push().getKey();
+
+                                imageDatabaseRef.child(uploadId).setValue(upload);
                             }
-                        }, 500);
-
-                        showMessage("Upload successful");
-                        Upload upload = new Upload(imgText.getText().toString().trim(),
-                                taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
-                        String uploadId = imageDatabaseRef.push().getKey();
-
-                        imageDatabaseRef.child(uploadId).setValue(upload);
-                    }
+                        });
+                    };
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override

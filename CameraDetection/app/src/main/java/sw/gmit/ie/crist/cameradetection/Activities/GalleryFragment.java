@@ -15,8 +15,12 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import sw.gmit.ie.crist.cameradetection.R;
 
@@ -24,8 +28,11 @@ public class GalleryFragment extends Fragment {
     final FragmentActivity thisActivity = getActivity();
 
     private RecyclerView recyclerView;
+    private StorageReference storageReference;
     private DatabaseReference databaseReference;
+    private FirebaseStorage firebaseStorage;
     private ViewHolder viewHolder;
+    private FirebaseUser user;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -33,10 +40,10 @@ public class GalleryFragment extends Fragment {
 
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         actionBar.setTitle("Images List");
-
         initVariables(rootView);
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("images");
+        user = FirebaseAuth.getInstance().getCurrentUser();
+        databaseReference = FirebaseDatabase.getInstance().getReference("images/" + user.getDisplayName());
 
         return rootView;
 

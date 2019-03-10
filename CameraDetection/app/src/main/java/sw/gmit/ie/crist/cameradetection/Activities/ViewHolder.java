@@ -18,7 +18,7 @@ import sw.gmit.ie.crist.cameradetection.R;
 
 public class ViewHolder extends RecyclerView.ViewHolder {
 
-    View view;
+    private View view;
 
     public ViewHolder(View itemView) {
         super(itemView);
