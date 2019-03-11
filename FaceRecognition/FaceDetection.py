@@ -160,20 +160,27 @@ def uploading_files():
     # Reference an existing bucket.
     bucket = client.get_bucket('camera-detection-73a01.appspot.com')
     print (recognized)
-    print (unknown)
-    if (recognized == "recognized"):
-        #Upload a local file to a new file to be created in your bucket.
+  
+#    if (recognized == "recognized"):
+#        #Upload a local file to a new file to be created in your bucket.
+#        zebraBlob = bucket.blob(prefix + name + "/"  + filename)
+#        zebraBlob.upload_from_filename(filename=filename)
+#    else:
+#        recognized == ""
+#        zebraBlob = bucket.blob(prefix + "unknown" + "/"  + filename)
+#        zebraBlob.upload_from_filename(filename=filename)
+    
+    if 'recognized' in recognized :
+       #Upload a local file to a new file to be created in your bucket.
         zebraBlob = bucket.blob(prefix + name + "/"  + filename)
         zebraBlob.upload_from_filename(filename=filename)
-    else:
-        recognized == ""
         
-    if (unknown == "unrecognized"):
+    if 'unrecognized' in recognized :
         zebraBlob = bucket.blob(prefix + "unknown" + "/"  + filename)
         zebraBlob.upload_from_filename(filename=filename)
+         
         
-    else:
-        unknown == ""
+
 
 def downloading_files():
     for blob in blobs:
@@ -250,34 +257,34 @@ def training_faces():
     
 
 
-def record_video():
-    global filename
-    # The duration in seconds of the video captured
-    capture_duration = 4
-    
-    cap = cv2.VideoCapture(0)
-    filename = ( datetime.datetime.now().strftime("%A%d%B%Y%I%M%S%p")+".avi")
-    print (filename)
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(filename,fourcc, 20.0, (640,480))
-    
-    start_time = time.time()
-    while( int(time.time() - start_time) < capture_duration ):
-        ret, frame = cap.read()
-        if ret==True:
-            #frame = cv2.flip(frame,0)
-            cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
-    		(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-            out.write(frame)
-            #cv2.imshow('frame',frame)
-        else:
-            break
-    
-    cap.release()
-    out.release()
-    cv2.destroyAllWindows()
-    uploading_files()
-    main()
+#def record_video():
+#    global filename
+#    # The duration in seconds of the video captured
+#    capture_duration = 4
+#    
+#    cap = cv2.VideoCapture(0)
+#    filename = ( datetime.datetime.now().strftime("%A%d%B%Y%I%M%S%p")+".avi")
+#    print (filename)
+#    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+#    out = cv2.VideoWriter(filename,fourcc, 20.0, (640,480))
+#    
+#    start_time = time.time()
+#    while( int(time.time() - start_time) < capture_duration ):
+#        ret, frame = cap.read()
+#        if ret==True:
+#            #frame = cv2.flip(frame,0)
+#            cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
+#    		(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+#            out.write(frame)
+#            #cv2.imshow('frame',frame)
+#        else:
+#            break
+#    
+#    cap.release()
+#    out.release()
+#    cv2.destroyAllWindows()
+#    uploading_files()
+#    main()
 
 
 
@@ -287,8 +294,21 @@ def face_detection():
    # eye_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_eye.xml')
   #  smile_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_smile.xml')
     global name
-    global unknown
+    #global unknown
     global recognized
+    global filename
+    
+    recognized = [""]
+
+    
+    capture_duration = 10
+    filename = ( datetime.datetime.now().strftime("%A%d%B%Y%I%M%S%p")+".avi")
+    print (filename)
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(filename,fourcc, 10, (640,480))
+#    start_time = time.time()
+    
+    
     
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     recognizer.read("./recognizers/face-trainner.yml")
@@ -300,63 +320,74 @@ def face_detection():
     
  
     while(True):
-    # Capture frame-by-frame
-        ret, frame = cap.read()
-        gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
-        for (x, y, w, h) in faces:
-        	#print(x,y,w,h)
-        	roi_gray = gray[y:y+h, x:x+w] #(ycord_start, ycord_end)
-        	roi_color = frame[y:y+h, x:x+w]
-#        	t0 = time.time()    
-        	# recognize? deep learned model predict keras tensorflow pytorch scikit learn
-        	id_, conf = recognizer.predict(roi_gray)
-        	if conf>=3 and conf <= 85:
-        		#print(5: #id_)
-        		#print(labels[id_])
-        		#print(conf)
-        		font = cv2.FONT_HERSHEY_SIMPLEX
-        		name = labels[id_]
-        		color = (255, 255, 255)
-        		stroke = 2
-        		cv2.putText(frame, name, (x,y), font, 1, color, stroke, cv2.LINE_AA)
-        		recognized = "recognized" 
-        		unknown = "recognized"                
-        	else:
-        		font = cv2.FONT_HERSHEY_SIMPLEX                
-        		name = labels[id_]            
-        		color = (255, 255, 255)             
-        		stroke = 2                
-        		cv2.putText(frame, "unrecognized", (x,y), font, 1, color, stroke, cv2.LINE_AA)
-        		unrecognized = "unrecognized.png"
-        		cv2.imwrite(unrecognized,roi_color)                                
-        		unknown = "unrecognized"
-        		unknown = "unrecognized"
-        	#img_item = "7.png"
-        	#cv2.imwrite(img_item, roi_color)
-    
-        	color = (255, 0, 0) #BGR 0-255 
-        	stroke = 2
-        	end_cord_x = x + w
-        	end_cord_y = y + h
-        	cv2.rectangle(frame, (x, y), (end_cord_x, end_cord_y), color, stroke)
-        	#subitems = smile_cascade.detectMultiScale(roi_gray)
-        	#for (ex,ey,ew,eh) in subitems:
-        	#	cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
-        # Display the resulting frame
-        #cv2.imshow('frame',frame)
-        record_video()        
-        if cv2.waitKey(20) & 0xFF == ord('q'):
-            break
-#        if face == ("unrecognized"):
-#            break
+        start_time = time.time()
+        while(int(time.time() - start_time) < capture_duration):
 
-    # When everything done, release the capture
-    cap.release()
-    cv2.destroyAllWindows()
+        # Capture frame-by-frame
+            ret, frame = cap.read()
+            gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
+            for (x, y, w, h) in faces:
+            	#print(x,y,w,h)
+            	roi_gray = gray[y:y+h, x:x+w] #(ycord_start, ycord_end)
+            	roi_color = frame[y:y+h, x:x+w]
+            	cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
+            	(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+                
+        #        	t0 = time.time()   
+            	out.write(frame)
+            	# recognize? deep learned model predict keras tensorflow pytorch scikit learn
+            	id_, conf = recognizer.predict(roi_gray)
+            	if conf>=3 and conf <= 85:
+            		#print(5: #id_)
+            		#print(labels[id_])
+            		#print(conf)
+            		font = cv2.FONT_HERSHEY_SIMPLEX
+            		name = labels[id_]
+            		color = (255, 255, 255)
+            		stroke = 2
+            		cv2.putText(frame, name, (x,y), font, 1, color, stroke, cv2.LINE_AA)
+            		if 'recognized' in recognized :
+            			break
+            		else:
+            			recognized = recognized + ["recognized"]
+                    
+                    
+            		#out.write(frame)
+            	else:
+            		font = cv2.FONT_HERSHEY_SIMPLEX                
+            		name = labels[id_]            
+            		color = (255, 255, 255)             
+            		stroke = 2                
+            		cv2.putText(frame, "unrecognized", (x,y), font, 1, color, stroke, cv2.LINE_AA)
+            		unrecognized = "unrecognized.png"
+            		cv2.imwrite(unrecognized,roi_color)   
+            		if 'unrecognized' in recognized :
+            			break
+            		else:
+            			recognized = recognized + ["unrecognized"]  
+            		                                 
+
+        color = (255, 0, 0) #BGR 0-255 
+        stroke = 2
+        end_cord_x = x + w
+        end_cord_y = y + h
+        cv2.rectangle(frame, (x, y), (end_cord_x, end_cord_y), color, stroke)
+            	#subitems = smile_cascade.detectMultiScale(roi_gray)
+            	#for (ex,ey,ew,eh) in subitems:
+            	#	cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+            # Display the resulting frame
+            #cv2.imshow('frame',frame)
+            #record_video()  
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+        break
+        #uploading_files()
+        #main()
+
     
- 
-    
+  
 def motion_detection():
     vs = VideoStream(src=0).start()
     time.sleep(4.0)
@@ -443,6 +474,7 @@ def main():
   training_faces()  
   motion_detection() 
   face_detection()
+  uploading_files()
   
 if __name__ == '__main__':
     main()
