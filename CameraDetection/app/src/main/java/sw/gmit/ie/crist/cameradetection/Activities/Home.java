@@ -1,7 +1,11 @@
 package sw.gmit.ie.crist.cameradetection.Activities;
 
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -11,12 +15,31 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.DownloadListener;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.messaging.RemoteMessage;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.pusher.pushnotifications.PushNotificationReceivedListener;
 import com.pusher.pushnotifications.PushNotifications;
+import com.pusher.pushnotifications.auth.AuthData;
+import com.pusher.pushnotifications.auth.AuthDataGetter;
+import com.pusher.pushnotifications.auth.BeamsTokenProvider;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.regex.Pattern;
+
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -26,6 +49,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     private Toolbar toolbar;
     private NavigationView navigationView;
     private ActionBarDrawerToggle toggle;
+    private FirebaseUser user;
 
     public boolean getSignedIn() {
         return isSignedIn;
@@ -39,8 +63,28 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        FirebaseApp.initializeApp(this);
+        user = FirebaseAuth.getInstance().getCurrentUser();
         PushNotifications.start(getApplicationContext(), "2f23a1d1-dc77-48d8-8474-d7dda1d9ee14");
         PushNotifications.subscribe("hello");
+
+//        BeamsTokenProvider tokenProvider = new BeamsTokenProvider(
+//                "<YOUR_BEAMS_AUTH_URL_HERE>",
+//                new AuthDataGetter() {
+//                    @Override
+//                    public AuthData getAuthData() {
+//                        // Headers and URL query params your auth endpoint needs to
+//                        // request a Beams Token for a given user
+//                        HashMap<String, String> headers = new HashMap<>();
+//                        // for example:
+//                        // headers.put("Authorization", sessionToken);
+//                        HashMap<String, String> queryParams = new HashMap<>();
+//                        return new AuthData(
+//                                headers,
+//                                queryParams
+//                        );
+//                    }
+//                }
+//        );
 
         initVariables();
 
@@ -89,7 +133,9 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                 break;
             case R.id.nav_take_photo:
                 takePicture();
-                showMessage("Taking a picture");
+                break;
+            case R.id.nav_download_video:
+                downloadVideo();
                 break;
             default:
                 break;
@@ -147,6 +193,45 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         startActivityForResult(intent, 0);
 
     }
+
+    private void downloadVideo() {
+        StorageReference storageReference, ref;
+
+        storageReference = FirebaseStorage.getInstance().getReference();
+        ref = storageReference.child("images/" + user.getDisplayName() + "/unknown/Monday11March2019022140PM.avi"); // + Pattern.compile(".") + ".mp4");
+
+        ref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                String url = uri.toString();
+                downloadFiles(Home.this, "Folders", ".avi", Environment.DIRECTORY_MUSIC + "", url);
+            }
+
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+
+            }
+        });
+    }
+
+    private void downloadFiles(Context context,
+                               String fileName,
+                               String fileExtension,
+                               String destinationDirectory,
+                               String url) {
+
+        DownloadManager downloadManager = (DownloadManager) context
+                .getSystemService(Context.DOWNLOAD_SERVICE);
+        Uri uri = Uri.parse(url);
+        DownloadManager.Request request = new DownloadManager.Request(uri);
+
+        request.setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName + fileExtension);
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+        downloadManager.enqueue(request);
+    }
+
 
 //    @Override
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
