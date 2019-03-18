@@ -16,6 +16,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,7 +34,21 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
+import com.pusher.pushnotifications.BeamsCallback;
+import com.pusher.pushnotifications.NoopBeamsCallback;
+import com.pusher.pushnotifications.fcm.MessagingService;
 import com.pusher.pushnotifications.PushNotifications;
+import com.pusher.pushnotifications.PushNotificationsInstance;
+import com.pusher.pushnotifications.PusherCallbackError;
+import com.pusher.pushnotifications.auth.AuthData;
+import com.pusher.pushnotifications.auth.AuthDataGetter;
+import com.pusher.pushnotifications.auth.TokenProvider;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import sw.gmit.ie.crist.cameradetection.R;
 
@@ -48,6 +63,8 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     private FirebaseUser user;
     private StorageTask uploadTask;
     private Uri imgURI;
+    private TokenProvider tokenProvider;
+    private PushNotificationsInstance instance;
 
     public boolean getIsChosen() {
         return isChosen;
@@ -71,25 +88,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         PushNotifications.start(getApplicationContext(), "2f23a1d1-dc77-48d8-8474-d7dda1d9ee14");
         PushNotifications.subscribe("hello");
 
-//        BeamsTokenProvider tokenProvider = new BeamsTokenProvider(
-//                "<YOUR_BEAMS_AUTH_URL_HERE>",
-//                new AuthDataGetter() {
-//                    @Override
-//                    public AuthData getAuthData() {
-//                        // Headers and URL query params your auth endpoint needs to
-//                        // request a Beams Token for a given user
-//                        HashMap<String, String> headers = new HashMap<>();
-//                        // for example:
-//                        // headers.put("Authorization", sessionToken);
-//                        HashMap<String, String> queryParams = new HashMap<>();
-//                        return new AuthData(
-//                                headers,
-//                                queryParams
-//                        );
-//                    }
-//                }
-//        );
-
         initVariables();
 
         setSupportActionBar(toolbar);
@@ -103,6 +101,14 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new ProfileFragment()).commit();
             navigationView.setCheckedItem(R.id.nav_profile);
         }
+    }
+
+    public void setUserId(String userId, TokenProvider tokenProvider, BeamsCallback<Void, PusherCallbackError> callback) {
+        if (instance == null) {
+            throw new IllegalStateException("PushNotifications.start must have been called before");
+        }
+
+        instance.setUserId(userId, tokenProvider, callback);
     }
 
     private void initVariables() {
@@ -291,15 +297,24 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
     private void downloadVideo() {
         StorageReference storageReference, ref;
-
+        Pattern p = Pattern.compile(".");
         storageReference = FirebaseStorage.getInstance().getReference();
-        ref = storageReference.child("images/" + user.getDisplayName() + "/unknown/Monday11March2019022140PM.avi"); // + Pattern.compile(".") + ".mp4");
+//        ref = storageReference.child("images/" + user.getDisplayName() + "/unknown/*.mp4 ."); // + Pattern.compile(".") + ".mp4");
+//        ref = storageReference.child("images/" + user.getDisplayName() + "/unknown/VID_20190318_154951.mp4"); // + Pattern.compile(".") + ".mp4");
+        ref = storageReference.child("images/" + user.getDisplayName() + "/unknown/"); // + Pattern.compile(".") + ".mp4");
+
+
+//
+//        Matcher m = p.matcher("aaaaab");
+//
+//        boolean b = Pattern.matches("a*b", "aaaaab");
+        showMessage (ref.toString ());
 
         ref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {
                 String url = uri.toString();
-                downloadFiles(Home.this, "Folders", ".avi", Environment.DIRECTORY_DOWNLOADS, url);
+                downloadFiles(Home.this, "Folders", ".mp4", Environment.DIRECTORY_DOWNLOADS, url);
             }
 
         }).addOnFailureListener(new OnFailureListener() {
