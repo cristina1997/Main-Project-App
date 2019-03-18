@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -35,7 +36,6 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
 import com.pusher.pushnotifications.BeamsCallback;
-import com.pusher.pushnotifications.NoopBeamsCallback;
 import com.pusher.pushnotifications.fcm.MessagingService;
 import com.pusher.pushnotifications.PushNotifications;
 import com.pusher.pushnotifications.PushNotificationsInstance;
@@ -83,7 +83,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        FirebaseApp.initializeApp(this);
+        setTitle("Home");
         user = FirebaseAuth.getInstance().getCurrentUser();
         PushNotifications.start(getApplicationContext(), "2f23a1d1-dc77-48d8-8474-d7dda1d9ee14");
         PushNotifications.subscribe("hello");
@@ -98,8 +98,8 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         toggle.syncState();
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new ProfileFragment()).commit();
-            navigationView.setCheckedItem(R.id.nav_profile);
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new GalleryFragment ()).commit();
+            navigationView.setCheckedItem(R.id.nav_gallery);
         }
     }
 
@@ -124,16 +124,12 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
-            case R.id.nav_profile:
-                // redirect to the ProfileFragment java class
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new ProfileFragment()).commit();
+            case R.id.nav_gallery:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new GalleryFragment()).commit();
                 break;
             case R.id.nav_message:
                 // redirect to the MessageFragment java class
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MessageFragment()).commit();
-                break;
-            case R.id.nav_gallery:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new GalleryFragment()).commit();
                 break;
             case R.id.nav_call_911:
 

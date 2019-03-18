@@ -17,17 +17,20 @@ public class Register extends AppCompatActivity {
 
     private final UserDatabase userDatabase = new UserDatabase ();
     // Register variables
+    private ButtonVisibility bs = new ButtonVisibility();
     private EditText userName, userEmail, userPass, userPassConfig;
     private ProgressBar registerProgress;
     private Button regBtn;
 
     // Redirecting variables
     private Intent LoginActivity;
+    private Redirect redirect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);         // it opens the registration activity file
+        setTitle("Register");
         initVariables();                                    // initializes registration variables
 
         registerProgress.setVisibility(View.INVISIBLE);     // progress bar visibility is initially invisible
@@ -52,14 +55,13 @@ public class Register extends AppCompatActivity {
         regBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                hideBtn();
 
                 // Stores the values from the initialized variables into strings
                 final String name = userName.getText().toString();
                 final String email = userEmail.getText().toString();
                 final String pass = userPass.getText().toString();
                 final String pass2 = userPassConfig.getText().toString();
-
+                bs.hideBtn(regBtn, registerProgress);
 
                 // If there is no input then show a message
                 if ( name.isEmpty() || email.isEmpty() || pass.isEmpty() || !pass.equals(pass2)){
@@ -72,7 +74,7 @@ public class Register extends AppCompatActivity {
                         showMessage("All fields must be filled");
                     }
 
-                    showBtn();
+                    bs.showBtn(regBtn, registerProgress);
                 } else {
                     // creates user account
                     CreateAccount(name, email, pass);
@@ -110,27 +112,16 @@ public class Register extends AppCompatActivity {
                             .build();
                     firebaseUser.updateProfile(profileUpdates);
                 }
-                showBtn();
+                bs.showBtn(regBtn, registerProgress);
                 updateLoginUI();
             } else {
                 // registration failed
-                showMessage("Registration failed" + task.getException().getMessage().toString());
-                hideBtn();
-
+                showMessage(task.getException().getMessage().toString());
             }
             }
         });
     }
 
-    private void hideBtn() {
-        regBtn.setVisibility(View.INVISIBLE);                   // hides registration button
-        registerProgress.setVisibility(View.VISIBLE);           // shows progresss bar
-    }
-
-    private void showBtn() {
-        regBtn.setVisibility(View.VISIBLE);                     // shows registration button
-        registerProgress.setVisibility(View.INVISIBLE);         // hides progresss bar
-    }
 
     private void createUserDatabase(final String name, String email) {
         userDatabase.createUserDatabase (name, email);
