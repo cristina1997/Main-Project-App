@@ -14,19 +14,19 @@ import time
 from imutils.video import VideoStream
 import imutils
 import datetime
-
+from pusher_push_notifications import PushNotifications
 
 
 
 main = tkinter.Tk()
 main.title('Authentication Box')
-main.geometry('225x150')
+main.geometry('400x150')
 
 def clear_widget(event):
 
     # will clear out any entry boxes defined below when the user shifts
     # focus to the widgets defined below
-    if username_box == main.focus_get() and username_box.get() == 'Enter Username':
+    if username_box == main.focus_get() and username_box.get() == 'Enter Email':
         username_box.delete(0, tkinter.END)
     elif password_box == password_box.focus_get() and password_box.get() == '     ':
         password_box.delete(0, tkinter.END)
@@ -43,8 +43,8 @@ def repopulate_defaults(event):
 def login(*event):
     global email, password
     # Able to be called from a key binding or a button click because of the '*event'
-    print (('Username: ') + username_box.get())
-    print (('Password: ') + password_box.get())
+#    print (('Username: ') + username_box.get())
+#    print (('Password: ') + password_box.get())
     
 
     email = username_box.get() 
@@ -65,7 +65,7 @@ while rows < 10:
 
 # adds username entry widget and defines its properties
 username_box = tkinter.Entry(main)
-username_box.insert(0, 'Enter Username')
+username_box.insert(0, 'Enter Email')
 username_box.bind("<FocusIn>", clear_widget)
 username_box.bind('<FocusOut>', repopulate_defaults)
 username_box.grid(row=1, column=5, sticky='NS')
@@ -87,9 +87,6 @@ login_btn.grid(row=5, column=5, sticky='NESW')
 
 
 main.mainloop()
-
-
-
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="camera-detection-73a01-firebase-adminsdk-e31px-f129000ad6.json"
 
@@ -115,19 +112,9 @@ firebase = pyrebase.initialize_app(config)
 
 auth = firebase.auth()
 
-#email = input ('Please enter your email\n')
-#password = input ('Please enter your password\n')
-
-
-print ("username: " + email,"password: " + password)
-
-
-#user = auth.create_user_with_email_and_password(email,password)
 user = auth.sign_in_with_email_and_password(email,password)
-#user = auth.sign_in_with_email_and_password(email,password)
-users = (auth.get_account_info(user['idToken']))
 
-json.dump(users, open("users.txt",'w'))
+users = (auth.get_account_info(user['idToken']))
 
 tree_obj = objectpath.Tree(users)
 
@@ -146,39 +133,31 @@ iterator = bucket.list_blobs(prefix=prefix, delimiter='/')
 prefixes = set()
 for page in iterator.pages:
     prefixes.update(page.prefixes)
-print (prefixes)
-print (type(prefixes))
+#print (prefixes)
+#print (type(prefixes))
 test = ', '.join(prefixes)
-print (test)
-
-
+#print (test)
 
 def uploading_files():
     # Enable Storage
     client = storage.Client()
+    db = firebase.database()
     
     # Reference an existing bucket.
     bucket = client.get_bucket('camera-detection-73a01.appspot.com')
-    print (recognized)
-  
-#    if (recognized == "recognized"):
-#        #Upload a local file to a new file to be created in your bucket.
-#        zebraBlob = bucket.blob(prefix + name + "/"  + filename)
-#        zebraBlob.upload_from_filename(filename=filename)
-#    else:
-#        recognized == ""
-#        zebraBlob = bucket.blob(prefix + "unknown" + "/"  + filename)
-#        zebraBlob.upload_from_filename(filename=filename)
+   # print (recognized)
+   # print (names)
     
     if 'recognized' in recognized :
        #Upload a local file to a new file to be created in your bucket.
         zebraBlob = bucket.blob(prefix + name + "/"  + filename)
         zebraBlob.upload_from_filename(filename=filename)
+        db.child("videos").child(name).push({"name":filename})
         
     if 'unrecognized' in recognized :
         zebraBlob = bucket.blob(prefix + "unknown" + "/"  + filename)
         zebraBlob.upload_from_filename(filename=filename)
-         
+        db.child("videos").child("unknown").push({"name":filename})         
         
 
 
@@ -188,7 +167,7 @@ def downloading_files():
             
         if list.endswith('jpg') or list.endswith('png'):
             list = re.sub("|".join(char_list), "", list)
-            print(list)
+            #print(list)
             giraffeBlob = bucket.blob(list)
   
             with open(list, 'wb') as file_obj:
@@ -202,7 +181,7 @@ def checking_folder():
             print ("The Folder Already Exists")
            
         else:
-            print("The Folder Doesnt Exist")
+            #print("The Folder Doesnt Exist")
             os.mkdir(folder)
 
 
@@ -229,19 +208,14 @@ def training_faces():
     		if file.endswith("png") or file.endswith("jpg"):
     			path = os.path.join(root, file)
     			label = os.path.basename(root).replace(" ", "-").lower()
-    			#print(label, path)
     			if not label in label_ids:
     				label_ids[label] = current_id
     				current_id += 1
     			id_ = label_ids[label]
-    			#print(label_ids)
-    			#y_labels.append(label) # some number
-    			#x_train.append(path) # verify this image, turn into a NUMPY arrray, GRAY
     			pil_image = Image.open(path).convert("L") # grayscale
     			size = (550, 550)
     			final_image = pil_image.resize(size, Image.ANTIALIAS)
     			image_array = np.array(final_image, "uint8")
-    			#print(image_array)
     			faces = face_cascade.detectMultiScale(image_array, scaleFactor=1.1, minNeighbors=5)
     
     			for (x,y,w,h) in faces:
@@ -256,59 +230,21 @@ def training_faces():
     recognizer.save("recognizers/face-trainner.yml")
     
 
-
-#def record_video():
-#    global filename
-#    # The duration in seconds of the video captured
-#    capture_duration = 4
-#    
-#    cap = cv2.VideoCapture(0)
-#    filename = ( datetime.datetime.now().strftime("%A%d%B%Y%I%M%S%p")+".avi")
-#    print (filename)
-#    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-#    out = cv2.VideoWriter(filename,fourcc, 20.0, (640,480))
-#    
-#    start_time = time.time()
-#    while( int(time.time() - start_time) < capture_duration ):
-#        ret, frame = cap.read()
-#        if ret==True:
-#            #frame = cv2.flip(frame,0)
-#            cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
-#    		(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-#            out.write(frame)
-#            #cv2.imshow('frame',frame)
-#        else:
-#            break
-#    
-#    cap.release()
-#    out.release()
-#    cv2.destroyAllWindows()
-#    uploading_files()
-#    main()
-
-
-
 def face_detection():
     cap = cv2.VideoCapture(0)
     face_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_frontalface_alt2.xml')
-   # eye_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_eye.xml')
-  #  smile_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_smile.xml')
     global name
-    #global unknown
+    global names
     global recognized
     global filename
     
     recognized = [""]
-
-    
+        
     capture_duration = 10
-    filename = ( datetime.datetime.now().strftime("%A%d%B%Y%I%M%S%p")+".avi")
-    print (filename)
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(filename,fourcc, 10, (640,480))
-#    start_time = time.time()
-    
-    
+    filename = ( datetime.datetime.now().strftime("%A%d%B%Y%I%M%S%p")+".mp4")
+    #print (filename)
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(filename,fourcc, 20, (640,480))    
     
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     recognizer.read("./recognizers/face-trainner.yml")
@@ -328,40 +264,30 @@ def face_detection():
             gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
             for (x, y, w, h) in faces:
-            	#print(x,y,w,h)
             	roi_gray = gray[y:y+h, x:x+w] #(ycord_start, ycord_end)
-            	roi_color = frame[y:y+h, x:x+w]
+            	#roi_color = frame[y:y+h, x:x+w]
             	cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
             	(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-                
-        #        	t0 = time.time()   
+  
             	out.write(frame)
             	# recognize? deep learned model predict keras tensorflow pytorch scikit learn
             	id_, conf = recognizer.predict(roi_gray)
             	if conf>=3 and conf <= 85:
-            		#print(5: #id_)
-            		#print(labels[id_])
-            		#print(conf)
-            		font = cv2.FONT_HERSHEY_SIMPLEX
+
             		name = labels[id_]
-            		color = (255, 255, 255)
-            		stroke = 2
-            		cv2.putText(frame, name, (x,y), font, 1, color, stroke, cv2.LINE_AA)
+            		names = name.split()               
+            		if names in name.split() :
+            			break
+            		else:
+            			names = name.split()
+                        
             		if 'recognized' in recognized :
             			break
             		else:
             			recognized = recognized + ["recognized"]
-                    
-                    
-            		#out.write(frame)
+                        
             	else:
-            		font = cv2.FONT_HERSHEY_SIMPLEX                
-            		name = labels[id_]            
-            		color = (255, 255, 255)             
-            		stroke = 2                
-            		cv2.putText(frame, "unrecognized", (x,y), font, 1, color, stroke, cv2.LINE_AA)
-            		unrecognized = "unrecognized.png"
-            		cv2.imwrite(unrecognized,roi_color)   
+
             		if 'unrecognized' in recognized :
             			break
             		else:
@@ -373,19 +299,13 @@ def face_detection():
         end_cord_x = x + w
         end_cord_y = y + h
         cv2.rectangle(frame, (x, y), (end_cord_x, end_cord_y), color, stroke)
-            	#subitems = smile_cascade.detectMultiScale(roi_gray)
-            	#for (ex,ey,ew,eh) in subitems:
-            	#	cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
-            # Display the resulting frame
-            #cv2.imshow('frame',frame)
-            #record_video()  
+
         cap.release()
         out.release()
         cv2.destroyAllWindows()
         break
         #uploading_files()
         #main()
-
     
   
 def motion_detection():
@@ -400,7 +320,6 @@ def motion_detection():
     	# grab the current frame and initialize the occupied/unoccupied
     	# text
     	frame = vs.read()
-    	#frame = frame if args.get("video", None) is None else frame[1]
     	frame = frame
     	text = "Unoccupied"
     
@@ -452,8 +371,7 @@ def motion_detection():
     
     	# show the frame and record if the user presses a key
     	cv2.imshow("Security Feed", frame)
-    	#cv2.imshow("Thresh", thresh)
-    	#cv2.imshow("Frame Delta", frameDelta)
+
     	key = cv2.waitKey(1) & 0xFF
     
     	# if the `q` key is pressed, break from the lop
