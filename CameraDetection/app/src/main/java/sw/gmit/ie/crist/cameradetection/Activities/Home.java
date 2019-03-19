@@ -1,7 +1,6 @@
 package sw.gmit.ie.crist.cameradetection.Activities;
 
 import android.app.DownloadManager;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -13,16 +12,12 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -36,25 +31,16 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
-import com.pusher.pushnotifications.BeamsCallback;
-import com.pusher.pushnotifications.fcm.MessagingService;
 import com.pusher.pushnotifications.PushNotifications;
 import com.pusher.pushnotifications.PushNotificationsInstance;
-import com.pusher.pushnotifications.PusherCallbackError;
-import com.pusher.pushnotifications.auth.AuthData;
-import com.pusher.pushnotifications.auth.AuthDataGetter;
 import com.pusher.pushnotifications.auth.TokenProvider;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.HashMap;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NameDialog.NameDialogListener {
-    private static final Integer TAKE_IMAGE_REQUEST = 0, CHOOSE_IMAGE_REQUEST = 1;
+    private final ImageExtension imageExtension = new ImageExtension ();
     private Bitmap bitmap;
     private boolean isSignedIn;
     private DrawerLayout drawer;
@@ -96,13 +82,13 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         }
     }
 
-    public void setUserId(String userId, TokenProvider tokenProvider, BeamsCallback<Void, PusherCallbackError> callback) {
-        if (instance == null) {
-            throw new IllegalStateException("PushNotifications.start must have been called before");
-        }
-
-        instance.setUserId(userId, tokenProvider, callback);
-    }
+//    public void setUserId(String userId, TokenProvider tokenProvider, BeamsCallback<Void, PusherCallbackError> callback) {
+//        if (instance == null) {
+//            throw new IllegalStateException("PushNotifications.start must have been called before");
+//        }
+//
+//        instance.setUserId(userId, tokenProvider, callback);
+//    }
 
     private void initVariables() {
         setContentView(R.layout.activity_home);  // shows the home page at the start of the application
@@ -160,9 +146,9 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
         switch (item.getItemId()){
             case R.id.logoutBtn:
-                FirebaseAuth.getInstance().signOut();
-                signeable.setSignedIn(false);  // not signed in anymore
-                sendToStart();
+                FirebaseAuth.getInstance().signOut();       // it logs out the user
+                signeable.setSignedIn(false);               // not signed in anymore
+                sendToStart();                              // it redirects the user to the start page
                 break;
             case R.id.delAcc:
                 showMessage("Account deletion button clicked");
@@ -190,13 +176,13 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     private void choosePicture(String name) {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
-        startActivityForResult(intent, CHOOSE_IMAGE_REQUEST);
+        startActivityForResult(intent, ImageReq.CHOOSE_IMAGE_REQUEST.getValue ());
 
     }
 
     private void takePicture(String name) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent, TAKE_IMAGE_REQUEST);
+        startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue ());
     }
 
     private void userFirebaseStorage(String name){
@@ -213,17 +199,10 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
     }
 
-    private String getFileExtension(Uri uri) {
-        // get extension from all files
-        ContentResolver cR = getContentResolver();
-        MimeTypeMap mime = MimeTypeMap.getSingleton();
-        return mime.getExtensionFromMimeType(cR.getType(uri));
-    }
-
     private void uploadFile(StorageReference imageStorageRef, final DatabaseReference imageDatabaseRef, final String name) {
 
         if (imgURI != null) {
-            final StorageReference fileReference = imageStorageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
+            final StorageReference fileReference = imageStorageRef.child(System.currentTimeMillis() + "." + imageExtension.getFileExtension (imgURI));
 
             fileReference.putFile(imgURI)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -307,7 +286,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
     private void downloadFiles(Context context,
                                String fileName,
-                               String fileExtension,
+                               String downloadExtension,
                                String destinationDirectory,
                                String url) {
 
@@ -316,7 +295,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         Uri uri = Uri.parse(url);
         DownloadManager.Request request = new DownloadManager.Request(uri);
 
-        request.setDestinationInExternalFilesDir(context, destinationDirectory, fileName + fileExtension);
+        request.setDestinationInExternalFilesDir(context, destinationDirectory, fileName + downloadExtension);
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
         downloadManager.enqueue(request);
@@ -336,10 +315,10 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
         if (resultCode == RESULT_OK) {
 
-            if (requestCode == CHOOSE_IMAGE_REQUEST) {
+            if (requestCode == ImageReq.CHOOSE_IMAGE_REQUEST.getValue()) {
                 imgURI = data.getData();
                 userFirebaseStorage(upload.getName());
-            } else if (requestCode == TAKE_IMAGE_REQUEST) {
+            } else if (requestCode == ImageReq.TAKE_IMAGE_REQUEST.getValue()) {
                 bitmap = (Bitmap) data.getExtras().get("data");
             }
         }

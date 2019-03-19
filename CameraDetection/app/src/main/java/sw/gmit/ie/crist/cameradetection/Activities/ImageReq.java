@@ -1,14 +1,14 @@
 package sw.gmit.ie.crist.cameradetection.Activities;
 
 public enum ImageReq {
-    PICK_IMAGE_REQUEST (1), CAPTURE_IMAGE_REQUEST (0);
-    private int value;
+    TAKE_IMAGE_REQUEST (0), CHOOSE_IMAGE_REQUEST (1);
+    private Integer value;
 
-    public int getValue() {
+    public Integer getValue() {
         return value;
     }
 
-    ImageReq(int value) {
+    ImageReq(Integer value) {
         this.value = value;
     }
 }
