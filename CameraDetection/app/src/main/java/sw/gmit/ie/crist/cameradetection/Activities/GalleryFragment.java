@@ -27,31 +27,37 @@ import sw.gmit.ie.crist.cameradetection.R;
 public class GalleryFragment extends Fragment {
     final FragmentActivity thisActivity = getActivity();
 
+    // Picture variables
     private RecyclerView recyclerView;
+    private ViewHolder viewHolder;
+
+    // Firebase Database Variables
     private StorageReference storageReference;
     private DatabaseReference databaseReference;
     private FirebaseStorage firebaseStorage;
-    private ViewHolder viewHolder;
-    private FirebaseUser user;
+
+    /// Firebase Variables
+    private FirebaseAuth mAuth;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_gallery, container, false);
-
-        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionBar.setTitle("Images List");
+        getActivity().setTitle("Gallery");
         initVariables(rootView);
 
-        user = FirebaseAuth.getInstance().getCurrentUser();
-        databaseReference = FirebaseDatabase.getInstance().getReference("images/" + user.getDisplayName());
+        FirebaseUser user = mAuth.getInstance().getCurrentUser();                 // it gets the current user
+        databaseReference = FirebaseDatabase                        // it gets
+                            .getInstance()
+                            .getReference("images/" +
+                                    user.getDisplayName());
 
         return rootView;
 
     }
 
     private void initVariables(View rootView) {
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
-        recyclerView.setHasFixedSize(true);
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);        // gets the recycler view
+        recyclerView.setHasFixedSize(true);                                             // sets picture size
         recyclerView.setLayoutManager(new LinearLayoutManager(thisActivity));
     }
 

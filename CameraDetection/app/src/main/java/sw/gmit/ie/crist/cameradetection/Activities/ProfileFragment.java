@@ -23,6 +23,8 @@ import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
 
+import java.net.URI;
+
 import static android.app.Activity.RESULT_OK;
 
 import sw.gmit.ie.crist.cameradetection.R;
@@ -30,58 +32,56 @@ import sw.gmit.ie.crist.cameradetection.R;
 public class ProfileFragment extends Fragment {
     private static final int PICK_IMAGE_REQUEST = 1;
 
+    // Image Variables
     private Button btnChooseImg, btnUploadImg;
     protected ImageView imgView;
     private EditText imgText;
     private ProgressBar imgProgressBar;
-    private FirebaseUser user;
-    private String userDisplayName, personName;
+
+    // Image Upload variables
     private StorageTask uploadTask;
-    private FirebaseAuth mAuth;
+    private String userDisplayName, personName;
+    private Uri imgURI;
+
     public EditText getImgText() {
         return imgText;
     }
 
+    // Firebase Database Variables
+    private StorageReference imageStorageRef;
+    private DatabaseReference imageDatabaseRef;
+
+    // Firebase Variables
+    private FirebaseAuth mAuth;
+    private FirebaseUser user;
+
     public void setImgText(EditText imgText) {
         this.imgText = imgText;
     }
-    private Uri imgURI;
 
-    private StorageReference imageStorageRef;
-    private DatabaseReference imageDatabaseRef;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
+        getActivity().setTitle("Home");
+//        initVariables(rootView);
 
-        initVariables(rootView);
+        user = mAuth.getInstance().getCurrentUser();
 
-        user = FirebaseAuth.getInstance().getCurrentUser();
-        mAuth = FirebaseAuth.getInstance();
-        // verify if the User's name was added to the database
-//        if (user.getDisplayName() == null){
-//            showMessage("User Name is null");
-//        } else {
-//            showMessage(user.getDisplayName());
-//        }
-
-
-//        imageStorageRef = FirebaseStorage.getInstance().getReference("images/");
-//        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/");
 
         pickImage();
         uploadImage();
         return rootView;
     }
 
-    private void initVariables(View rootView) {
-        btnChooseImg = (Button) rootView.findViewById(R.id.chooseImgBtn);
-        btnUploadImg = (Button) rootView.findViewById(R.id.uploadBtn);
-        imgView = (ImageView) rootView.findViewById(R.id.imageView);
-        imgText = (EditText) rootView.findViewById(R.id.imgName);
-        imgProgressBar = (ProgressBar) rootView.findViewById(R.id.imgProgress);
-    }
+//    private void initVariables(View rootView) {
+//        btnChooseImg = (Button) rootView.findViewById(R.id.chooseImgBtn);
+//        btnUploadImg = (Button) rootView.findViewById(R.id.uploadBtn);
+//        imgView = (ImageView) rootView.findViewById(R.id.imageView);
+//        imgText = (EditText) rootView.findViewById(R.id.imgName);
+//        imgProgressBar = (ProgressBar) rootView.findViewById(R.id.imgProgress);
+//    }
 
     private void pickImage() {
         btnChooseImg.setOnClickListener(new View.OnClickListener() {

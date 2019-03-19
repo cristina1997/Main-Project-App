@@ -1,7 +1,6 @@
 package sw.gmit.ie.crist.cameradetection.Activities;
 
 import android.content.Intent;
-import android.mtp.MtpObjectInfo;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,43 +11,44 @@ import com.google.android.gms.tasks.*;
 import com.google.firebase.auth.*;
 import com.google.firebase.database.*;
 
-import java.util.jar.Attributes;
-
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class Register extends AppCompatActivity {
 
+    private final UserDatabase userDatabase = new UserDatabase ();
     // Register variables
-    private EditText userName, userEmail, userPass, userPassConf;
+    private ButtonVisibility bs = new ButtonVisibility();
+    private EditText userName, userEmail, userPass, userPassConfig;
     private ProgressBar registerProgress;
     private Button regBtn;
-    private FirebaseAuth mAuth;
+
+    // Redirecting variables
     private Intent LoginActivity;
-    private DatabaseReference userDatabaseRef;
-    private User user;
+    private Redirect redirect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        FirebaseApp.initializeApp(this);
-        initVariables();
+        setContentView(R.layout.activity_register);         // it opens the registration activity file
+        setTitle("Register");
+        initVariables();                                    // initializes registration variables
 
-        registerProgress.setVisibility(View.INVISIBLE);
+        registerProgress.setVisibility(View.INVISIBLE);     // progress bar visibility is initially invisible
 
-        mAuth = FirebaseAuth.getInstance();
-        userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
+        userDatabase.mAuth = FirebaseAuth.getInstance ();                 // firebase authentification instance
+        userDatabase.userDatabaseRef = FirebaseDatabase.getInstance ()    // firebase database instance creates
+                .getReference ("users");          //     -> a "users" reference on the database
         register();
 
     }
 
     private void initVariables() {
-        setContentView(R.layout.activity_register);
-        userName = findViewById(R.id.regName);
-        userEmail = findViewById(R.id.regEmail);
-        userPass = findViewById(R.id.regPass);
-        userPassConf = findViewById(R.id.regPassConf);
-        registerProgress = findViewById(R.id.regBar);
-        regBtn = findViewById(R.id.regBtn);
+        userName = findViewById(R.id.regName);              // full name
+        userEmail = findViewById(R.id.regEmail);            // email
+        userPass = findViewById(R.id.regPass);              // password
+        userPassConfig = findViewById(R.id.regPassConf);    // password configuration
+        registerProgress = findViewById(R.id.regBar);       // progress bar
+        regBtn = findViewById(R.id.regBtn);                 // registration button
     }
 
     private void register() {
@@ -56,28 +56,27 @@ public class Register extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                hideBtn();
-
+                // Stores the values from the initialized variables into strings
                 final String name = userName.getText().toString();
                 final String email = userEmail.getText().toString();
                 final String pass = userPass.getText().toString();
-                final String pass2 = userPassConf.getText().toString();
+                final String pass2 = userPassConfig.getText().toString();
+                bs.hideBtn(regBtn, registerProgress);
 
-
+                // If there is no input then show a message
                 if ( name.isEmpty() || email.isEmpty() || pass.isEmpty() || !pass.equals(pass2)){
 
                     if (!pass.equals(pass2)){
-                        // error message: passwords must be the same
-                        userPassConf.setError("Both passwords must be the same");
-//                        showMessage("Both passwords must be the same");
+                        // shows an error message if both passwords are different
+                        userPassConfig.setError("Both passwords must be the same");
                     } else {
-                        // error message: all fields must be filled
+                        // shows a message if fields are empty
                         showMessage("All fields must be filled");
                     }
 
-                    showBtn();
+                    bs.showBtn(regBtn, registerProgress);
                 } else {
-                    // no errors: create user account
+                    // creates user account
                     CreateAccount(name, email, pass);
                 }
 
@@ -86,60 +85,53 @@ public class Register extends AppCompatActivity {
     }
 
     private void CreateAccount(final String name, final String email, final String pass) {
+        getAuthResultTask (name, email, pass);
+    }
 
-        mAuth.createUserWithEmailAndPassword(email, pass).
-            addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()) {
-                        // registration successful
+    @NonNull
+    private Task<AuthResult> getAuthResultTask(final String name, final String email, String pass) {
+        return userDatabase.mAuth.createUserWithEmailAndPassword(email, pass).
+        addOnCompleteListener(this, new OnCompleteListener<AuthResult> () {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+            // registration successful
+            if (task.isSuccessful()) {
 
-                        createUserDatabase(name, email);
+                userDatabase.createUserDatabase (name, email);
 
-                        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                // it gets the current user
+                FirebaseUser firebaseUser = FirebaseAuth
+                                            .getInstance()
+                                            .getCurrentUser();
 
-                        if (firebaseUser.getDisplayName() == null){
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(name)
-                                    .build();
-                            firebaseUser.updateProfile(profileUpdates);
-                        }
-
-
-
-                        showBtn();
-                        updateLoginUI();
-                    } else {
-                        // registration failed
-                        showMessage("Registration failed" + task.getException().getMessage().toString());
-                        hideBtn();
-
-                    }
+                // if the current user doesn't have the full name stored in the database
+                // then add it to the database and update the profile
+                if (firebaseUser.getDisplayName() == null){
+                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                            .setDisplayName(name)
+                            .build();
+                    firebaseUser.updateProfile(profileUpdates);
                 }
-            });
+                bs.showBtn(regBtn, registerProgress);
+                updateLoginUI();
+            } else {
+                // registration failed
+                showMessage(task.getException().getMessage().toString());
+            }
+            }
+        });
     }
 
-    private void hideBtn() {
-        regBtn.setVisibility(View.INVISIBLE);
-        registerProgress.setVisibility(View.VISIBLE);
-    }
-
-    private void showBtn() {
-        regBtn.setVisibility(View.VISIBLE);
-        registerProgress.setVisibility(View.INVISIBLE);
-    }
 
     private void createUserDatabase(final String name, String email) {
-        user = new User(name, email);
-
-            userDatabaseRef.child(mAuth.getUid())
-                .setValue(user);
+        userDatabase.createUserDatabase (name, email);
     }
 
+    // redirects the user to the login page
     private void updateLoginUI() {
-        LoginActivity = new Intent(getApplicationContext(),Login.class);
-        startActivity(LoginActivity);
-        finish();
+        LoginActivity = new Intent(getApplicationContext(),Login.class);    // it gets the login activity class
+        startActivity(LoginActivity);                                       // it redirects the user to the login activity
+        finish();                                                           // finishes this activity
     }
 
     // method that shows a toast message

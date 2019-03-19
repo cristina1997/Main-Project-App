@@ -5,15 +5,12 @@
     tools:showIn="navigation_view">
 
     <group android:checkableBehavior="single">
-        <item android:id="@+id/nav_profile"
-            android:icon="@drawable/ic_profile"
-            android:title="Profile"/>
-        <item android:id="@+id/nav_message"
-            android:icon="@drawable/ic_message"
-            android:title="Message"/>
         <item android:id="@+id/nav_gallery"
             android:icon="@drawable/ic_gallery"
             android:title="Gallery"/>
+        <item android:id="@+id/nav_message"
+            android:icon="@drawable/ic_message"
+            android:title="Message"/>
     </group>
 
 
@@ -28,6 +25,9 @@
             <item android:id="@+id/nav_take_photo"
                 android:icon="@drawable/ic_take_photo"
                 android:title="Take Picture"/>
+            <item android:id="@+id/nav_download_video"
+                android:icon="@drawable/ic_download_videos"
+                android:title="Unknown People"/>
         </menu>
     </item>
 
