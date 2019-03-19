@@ -1,6 +1,7 @@
 package sw.gmit.ie.crist.cameradetection.Activities;
 
 import android.app.DownloadManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -18,6 +19,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -40,7 +42,7 @@ import java.util.regex.Pattern;
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NameDialog.NameDialogListener {
-    private final ImageExtension imageExtension = new ImageExtension ();
+    private ImageExtension imageExtension = new ImageExtension ();
     private Bitmap bitmap;
     private boolean isSignedIn;
     private DrawerLayout drawer;
@@ -146,9 +148,9 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
         switch (item.getItemId()){
             case R.id.logoutBtn:
-                FirebaseAuth.getInstance().signOut();       // it logs out the user
-                signeable.setSignedIn(false);               // not signed in anymore
-                sendToStart();                              // it redirects the user to the start page
+                FirebaseAuth.getInstance().signOut();
+                signeable.setSignedIn(false);  // not signed in anymore
+                sendToStart();
                 break;
             case R.id.delAcc:
                 showMessage("Account deletion button clicked");
@@ -185,73 +187,73 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue ());
     }
 
-    private void userFirebaseStorage(String name){
+    public String getFileExtension(Uri uri) {
+        // get extension from all files
+        ContentResolver cR = getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton ();
+        return mime.getExtensionFromMimeType (cR.getType(uri));
+    }
+
+    private void uploadFile() {
         String userDisplayName = user.getDisplayName();
-        String personName = name;
-        StorageReference imageStorageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
-        DatabaseReference imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName);
-        uploadImage(imageStorageRef, imageDatabaseRef, name);
-    }
-
-    private void uploadImage(StorageReference imageStorageRef, DatabaseReference imageDatabaseRef, String name) {
+        final String name = upload.getName();
+        final StorageReference imageStorageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + name);
+        final DatabaseReference imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName);
         if (uploadTask != null && uploadTask.isInProgress()) {}
-        else {uploadFile(imageStorageRef, imageDatabaseRef, name); }
+        else {
+            if (imgURI != null) {
+                final StorageReference fileReference = imageStorageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
 
-    }
+                fileReference.putFile(imgURI)
+                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                //  Successful upload
+                                // Code adapted from: https://stackoverflow.com/questions/50570893/after-upload-a-file-in-android-firebase-storage-how-get-the-file-download-url-g/50572357
+                                fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(Uri uri) {
+                                        Handler handler = new Handler();
+                                        handler.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                            }
+                                        }, 50000);
 
-    private void uploadFile(StorageReference imageStorageRef, final DatabaseReference imageDatabaseRef, final String name) {
-
-        if (imgURI != null) {
-            final StorageReference fileReference = imageStorageRef.child(System.currentTimeMillis() + "." + imageExtension.getFileExtension (imgURI));
-
-            fileReference.putFile(imgURI)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            //  Successful upload
-                            // Code adapted from: https://stackoverflow.com/questions/50570893/after-upload-a-file-in-android-firebase-storage-how-get-the-file-download-url-g/50572357
-                            fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                @Override
-                                public void onSuccess(Uri uri) {
-                                    Handler handler = new Handler();
-                                    handler.postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                        }
-                                    }, 50000);
-
-                                    Upload upload = new Upload(name.trim(), uri.toString());
+                                        Upload upload = new Upload(name.trim(), uri.toString());
 //                                    showMessage("URI: " +uri.toString());
-                                    String uploadId = imageDatabaseRef.push().getKey();
+                                        String uploadId = imageDatabaseRef.push().getKey();
 
-                                    imageDatabaseRef.child(uploadId).setValue(upload);
-                                }
-                            });
-                        };
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            //  Failed upload
-                            showMessage("Failed to upload image");
+                                        imageDatabaseRef.child(uploadId).setValue(upload);
+                                    }
+                                });
+                            };
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                //  Failed upload
+                                showMessage("Failed to upload image");
 
-                        }
-                    })
-                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot> () {
-                        @Override
-                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                            //  Progressing upload - update progress bar with current progress
-                            double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
-                        }
-                    });
+                            }
+                        })
+                        .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot> () {
+                            @Override
+                            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                                //  Progressing upload - update progress bar with current progress
+                                double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+                            }
+                        });
 
-        } else {
-            if (chosable.getChosen() == true){
-                showMessage("No file selected");
             } else {
-                showMessage("No picture taken");
+                if (chosable.getChosen() == true){
+                    showMessage("No file selected");
+                } else {
+                    showMessage("No picture taken");
+                }
             }
         }
+
     }
 
     private void downloadVideo() {
@@ -317,7 +319,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
             if (requestCode == ImageReq.CHOOSE_IMAGE_REQUEST.getValue()) {
                 imgURI = data.getData();
-                userFirebaseStorage(upload.getName());
+                uploadFile();
             } else if (requestCode == ImageReq.TAKE_IMAGE_REQUEST.getValue()) {
                 bitmap = (Bitmap) data.getExtras().get("data");
             }
