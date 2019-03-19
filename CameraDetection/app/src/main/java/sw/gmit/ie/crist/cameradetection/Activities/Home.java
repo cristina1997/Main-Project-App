@@ -4,6 +4,7 @@ import android.app.DownloadManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -53,9 +54,9 @@ import java.util.regex.Pattern;
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NameDialog.NameDialogListener {
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private static final int CAPTURE_IMAGE_REQUEST = 0;
-    private boolean isSignedIn, isChosen;
+    private static final Integer TAKE_IMAGE_REQUEST = 0, CHOOSE_IMAGE_REQUEST = 1;
+    private Bitmap bitmap;
+    private boolean isSignedIn;
     private DrawerLayout drawer;
     private Toolbar toolbar;
     private NavigationView navigationView;
@@ -63,22 +64,14 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     private FirebaseUser user;
     private StorageTask uploadTask;
     private Uri imgURI;
+
     private TokenProvider tokenProvider;
     private PushNotificationsInstance instance;
+    private Upload upload = new Upload();
 
-    public boolean getIsChosen() {
-        return isChosen;
-    }
-    public void setIsChosen(boolean isChosen) {
-        this.isChosen = isChosen;
-    }
-    public boolean getSignedIn() {
-        return isSignedIn;
-    }
-
-    public void setSignedIn(boolean signedIn) {
-        isSignedIn = signedIn;
-    }
+    // Class Variables
+    private Chosable chosable = new Chosable();
+    private Signeable signeable = new Signeable();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,14 +128,12 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
                 break;
             case R.id.nav_add_photo:
-                setIsChosen(true);
+                chosable.setChosen(true);
                 openDialog();
-//                choosePicture();
                 break;
             case R.id.nav_take_photo:
-                setIsChosen(false);
+                chosable.setChosen(false);
                 openDialog();
-//                takePicture();
                 break;
             case R.id.nav_download_video:
                 downloadVideo();
@@ -170,7 +161,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         switch (item.getItemId()){
             case R.id.logoutBtn:
                 FirebaseAuth.getInstance().signOut();
-                this.setSignedIn(false);  // not signed in anymore
+                signeable.setSignedIn(false);  // not signed in anymore
                 sendToStart();
                 break;
             case R.id.delAcc:
@@ -193,22 +184,19 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
     private void openDialog() {
         NameDialog nameDialog = new NameDialog();
-        nameDialog.show(getSupportFragmentManager(), "example dialog");
+        nameDialog.show(getSupportFragmentManager(), "dialog");
     }
 
     private void choosePicture(String name) {
-        Intent intent = new Intent();
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
-        userFirebaseStorage(name);
+        startActivityForResult(intent, CHOOSE_IMAGE_REQUEST);
+
     }
 
     private void takePicture(String name) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent, CAPTURE_IMAGE_REQUEST);
-
-        userFirebaseStorage(name);
+        startActivityForResult(intent, TAKE_IMAGE_REQUEST);
     }
 
     private void userFirebaseStorage(String name){
@@ -216,13 +204,12 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         String personName = name;
         StorageReference imageStorageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
         DatabaseReference imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName);
-        uploadImage (imageStorageRef, imageDatabaseRef, name);
+        uploadImage(imageStorageRef, imageDatabaseRef, name);
     }
 
     private void uploadImage(StorageReference imageStorageRef, DatabaseReference imageDatabaseRef, String name) {
-
         if (uploadTask != null && uploadTask.isInProgress()) {}
-        else { uploadFile(imageStorageRef, imageDatabaseRef, name); }
+        else {uploadFile(imageStorageRef, imageDatabaseRef, name); }
 
     }
 
@@ -238,7 +225,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         if (imgURI != null) {
             final StorageReference fileReference = imageStorageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
 
-            uploadTask = fileReference.putFile(imgURI)
+            fileReference.putFile(imgURI)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -251,14 +238,11 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                                     handler.postDelayed(new Runnable() {
                                         @Override
                                         public void run() {
-
-
                                         }
-                                    }, 500);
+                                    }, 50000);
 
-                                    Upload upload = new Upload(name.trim(),
-                                            uri.toString());
-                                    showMessage("URI: " +uri.toString());
+                                    Upload upload = new Upload(name.trim(), uri.toString());
+//                                    showMessage("URI: " +uri.toString());
                                     String uploadId = imageDatabaseRef.push().getKey();
 
                                     imageDatabaseRef.child(uploadId).setValue(upload);
@@ -283,7 +267,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                     });
 
         } else {
-            if (getIsChosen () == true){
+            if (chosable.getChosen() == true){
                 showMessage("No file selected");
             } else {
                 showMessage("No picture taken");
@@ -350,10 +334,16 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if ((requestCode == PICK_IMAGE_REQUEST )/*|| requestCode == CAPTURE_IMAGE_REQUEST)*/ && resultCode == RESULT_OK
-                && data != null && data.getData() != null) {
-            imgURI = data.getData();
+        if (resultCode == RESULT_OK) {
+
+            if (requestCode == CHOOSE_IMAGE_REQUEST) {
+                imgURI = data.getData();
+                userFirebaseStorage(upload.getName());
+            } else if (requestCode == TAKE_IMAGE_REQUEST) {
+                bitmap = (Bitmap) data.getExtras().get("data");
+            }
         }
+
     }
 
     @Override
@@ -370,11 +360,14 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     }
 
     @Override
-    public void applyTexts(String personName) {
-        if (getIsChosen () == true){
-            choosePicture (personName);
+    public void applyTexts(String personName){
+        upload.setName(personName);
+
+        if (chosable.getChosen() == true){
+            choosePicture(upload.getName());
         } else {
-            takePicture (personName);
+            takePicture(upload.getName());
         }
+
     }
 }

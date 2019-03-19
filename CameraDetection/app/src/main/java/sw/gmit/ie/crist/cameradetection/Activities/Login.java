@@ -26,6 +26,9 @@ public class Login extends AppCompatActivity {
     // Redirect variables
     private Intent HomeActivity, RegisterActivity;
     private Redirect redirect;
+
+    // Class Variables
+    private Signeable signeable = new Signeable();
     private Home home = new Home();
 
     @Override
@@ -33,7 +36,7 @@ public class Login extends AppCompatActivity {
         super.onStart();
         // If the user is already connect then redirect him/her redirect user to the home page
         FirebaseUser user = mAuth.getCurrentUser();
-        if (home.getSignedIn() == true && user != null){    // or if the user does not exist
+        if (signeable.getSignedIn() == true && user != null){    // or if the user does not exist
             updateHomeUI();
 //            showMessage(user.getUid());
         }
@@ -121,7 +124,7 @@ public class Login extends AppCompatActivity {
     private void updateHomeUI() {
         HomeActivity = new Intent(getApplicationContext(),Home.class);          // it gets the home activity class
         startActivity(HomeActivity);                                            // it redirects the user to the home activity
-        home.setSignedIn(true);                                                 // user is already signed in
+        signeable.setSignedIn(true);                                                 // user is already signed in
         finish();                                                               // finishes this activity
     }
 

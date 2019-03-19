@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 
 public class Redirect extends AppCompatActivity {
     private Intent HomeActivity, RegisterActivity, LoginActivity;
-    private Home home = new Home();
+    private Signeable signeable = new Signeable();
 
     // redirects the user to the registation page
     protected void updateRegisterUI() {
@@ -18,7 +18,7 @@ public class Redirect extends AppCompatActivity {
     protected void updateHomeUI() {
         HomeActivity = new Intent(getApplicationContext(),Home.class);          // it gets the home activity class
         startActivity(HomeActivity);                                            // it redirects the user to the home activity
-        home.setSignedIn(true);                                                 // user is already signed in
+        signeable.setSignedIn(true);                                                 // user is already signed in
         finish();                                                               // finishes this activity
     }
 

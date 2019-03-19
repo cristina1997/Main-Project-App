@@ -27,7 +27,7 @@ public class NameDialog extends AppCompatDialogFragment {
         View view = inflater.inflate(R.layout.layout_dialog, null);
 
         builder.setView(view)
-                .setTitle("Login")
+                .setTitle("Upload Image")
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -39,7 +39,7 @@ public class NameDialog extends AppCompatDialogFragment {
                     public void onClick(DialogInterface dialog, int which) {
                         String name = null;
 
-                        if( TextUtils.isEmpty(personName.getText())){
+                        if(TextUtils.isEmpty(personName.getText())){
                            showMessage( "Person's name required" );
                         } else {
                             name = personName.getText().toString();
