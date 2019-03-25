@@ -61,6 +61,7 @@ import sw.gmit.ie.crist.cameradetection.R;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NameDialog.NameDialogListener {
     private ImageExtension imageExtension = new ImageExtension ();
+    private String pathToFile;
     private Video video = new Video();
     private List videos = new ArrayList<> ();
     private Bitmap bitmap;
@@ -101,7 +102,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         toggle.syncState();
 
         if (Build.VERSION.SDK_INT >= 23){
-//            String[] string = Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE;
             requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
         }
 
@@ -217,24 +217,22 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
     private void takePicture() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue());
-
+//        startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue());
         if (intent.resolveActivity(getPackageManager()) != null){
             File picture = createPhotoFile();
             if (picture != null){
-                String pathToFile = picture.getAbsolutePath();
+                pathToFile = picture.getAbsolutePath();
                 photoURI = FileProvider.getUriForFile(Home.this, "sw.gmit.ie.crist.cameradetection.fileprovider", picture);
-
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-//                startActivityForResult(intent, ImageReq.CHOOSE_IMAGE_REQUEST.getValue());
+                startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue());
             }
         }
     }
 
     private File createPhotoFile() {
 
-
-        String pictureFile = upload.getName();
+//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String pictureFile = upload.getName(); // + timeStamp;
         File storageDir = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_PICTURES); // getExternalStoragePublicDirectory
         File image = null;
 
@@ -362,14 +360,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                 });
             }
         }
-
-
-//        StorageReference storage = FirebaseStorage.getInstance().getReference();
-//        StorageReference ref = storage.child("images/" + user.getDisplayName() + "/unknown/" + videos + " ");
-
-//        showMessage(" " +storageRef);
-
-
     }
 
 
@@ -398,17 +388,14 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == RESULT_OK) {
+        if (resultCode == RESULT_OK && data != null) {
 
             if (requestCode == ImageReq.CHOOSE_IMAGE_REQUEST.getValue()) {
                 imgURI = data.getData();
-                showMessage (" " +imgURI.toString());
                 choiceUpload();
             } else if (requestCode == ImageReq.TAKE_IMAGE_REQUEST.getValue()) {
-//                imgURI = data.getData();
-//                bitmap = (Bitmap) data.getExtras().get("data");
-//                takePicture().setImageBitmap(bitmap);
-//                choiceUpload();
+                imgURI = photoURI;
+                choiceUpload();
             }
         }
 
