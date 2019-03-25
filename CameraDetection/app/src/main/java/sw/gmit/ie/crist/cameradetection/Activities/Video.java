@@ -7,26 +7,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Video {
-    private String name;
-    private List allNames;
+    private String name, personType;
 
     public Video() {}
 
 
-    public Video(String name, List allNames) {
+    public Video(String name, String personType) {
         this.name = name;
-        this.allNames = allNames;
+        this.personType = personType;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setAllNames(List allNames) {
-        this.allNames = allNames;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public List getAllNames() {
-        return allNames;
+    public String getPersonType() {
+        return personType;
+    }
+
+    public void setPersonType(String personType) {
+        this.personType = personType;
     }
 }

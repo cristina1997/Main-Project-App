@@ -1,14 +1,19 @@
 package sw.gmit.ie.crist.cameradetection.Activities;
 
+import android.Manifest;
 import android.content.*;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.*;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.*;
 import android.webkit.MimeTypeMap;
 import android.widget.*;
@@ -26,6 +31,8 @@ import com.squareup.picasso.Request;
 
 import org.w3c.dom.Text;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 
 import static android.app.Activity.RESULT_OK;
@@ -44,8 +51,9 @@ public class ProfileFragment extends Fragment {
     // Image Upload variables
     private StorageTask uploadTask;
     private String userDisplayName, personName;
-    private Uri imgURI;
-
+    private Uri imgURI, photoURI;
+    private String pathToFile;
+    private Upload upload = new Upload();
     public EditText getImgText() {
         return imgText;
     }
@@ -72,6 +80,9 @@ public class ProfileFragment extends Fragment {
 
         user = mAuth.getInstance().getCurrentUser();
 
+        if (Build.VERSION.SDK_INT >= 23){
+            requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
+        }
 
         pickImage();
         return rootView;
@@ -87,27 +98,40 @@ public class ProfileFragment extends Fragment {
     }
 
     private void pickImage() {
-//        btnChooseImg.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                if (isTextEmpty() == false){
-//                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//                    intent.setType("image/*");
-//                    startActivityForResult(intent, ImageReq.CHOOSE_IMAGE_REQUEST.getValue());
-//                }
-//                userFirebaseStorage();
-//                uploadImage();
-//            }
-//        });
+        btnChooseImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isTextEmpty() == false){
+                    upload.setName(getImgText().getText().toString());
+                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, ImageReq.CHOOSE_IMAGE_REQUEST.getValue());
+                }
+                userFirebaseStorage();
+                uploadImage();
+            }
+        });
 
         btnTakePic.setOnClickListener (new View.OnClickListener () {
             @Override
             public void onClick(View v) {
                 if (isTextEmpty() == false){
+                    upload.setName(getImgText().getText().toString());
+                    personName = getImgText().getText().toString();
                     Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue());
-                    intent.setType("image/*");
+                    if (intent.resolveActivity(getActivity().getPackageManager()) != null){
+                        File picture = createPhotoFile();
+
+
+                        if (picture != null){
+                            pathToFile = picture.getAbsolutePath();
+                            photoURI = FileProvider.getUriForFile(getActivity().getApplicationContext(), "sw.gmit.ie.crist.cameradetection.fileprovider", picture);
+                            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                            startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue());
+                        }
+                    }
+                    userFirebaseStorage();
+                    uploadImage();
                 }
             }
         });
@@ -115,9 +139,25 @@ public class ProfileFragment extends Fragment {
 
     }
 
+    private File createPhotoFile() {
+
+        String pictureFile = upload.getName();
+        File storageDir = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_PICTURES); // getExternalStoragePublicDirectory
+        File image = null;
+
+
+        try {
+            image = File.createTempFile(pictureFile,  ".jpg", storageDir);
+        } catch (IOException e) {
+            Log.d("mylog", "Exception: " +e.toString());
+        }
+
+        return image;
+    }
+
     private void userFirebaseStorage(){
         userDisplayName = user.getDisplayName();
-        String personName = getImgText().getText().toString();
+        personName = upload.getName();
         imageStorageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
         imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName);
     }
@@ -215,9 +255,8 @@ public class ProfileFragment extends Fragment {
                 imgURI = data.getData();
                 imgView.setImageURI(imgURI);
             } else if (requestCode == ImageReq.TAKE_IMAGE_REQUEST.getValue()){
-                imgURI = data.getData();
+                imgURI = photoURI;
                 imgView.setImageURI(imgURI);
-                showMessage ("" +imgURI);
             }
 
         }

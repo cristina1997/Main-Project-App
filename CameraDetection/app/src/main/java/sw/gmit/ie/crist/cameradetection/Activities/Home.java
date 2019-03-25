@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.GravityCompat;
@@ -24,13 +25,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.MimeTypeMap;
-import android.widget.Adapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.text.*;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -40,7 +38,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
@@ -53,9 +50,7 @@ import com.pusher.pushnotifications.auth.TokenProvider;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import sw.gmit.ie.crist.cameradetection.R;
 
@@ -81,6 +76,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     // Class Variables
     private Chosable chosable = new Chosable();
     private Signeable signeable = new Signeable();
+    private DownloadableAcquaintances downloadableAcquaintances = new DownloadableAcquaintances ();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,8 +152,14 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                 chosable.setChosen(false);
                 openDialog();
                 break;
-            case R.id.nav_download_video:
+            case R.id.nav_download_unknown:
+                video.setPersonType("unknown");
+                downloadableAcquaintances.setDownloadable(false);
                 downloadVideo();
+                break;
+            case R.id.nav_download_acquaintances:
+                downloadableAcquaintances.setDownloadable(true);
+                openDialog();
                 break;
             default:
                 break;
@@ -171,7 +173,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.secondary_menu, menu);
-
         return true;
     }
 
@@ -217,7 +218,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
     private void takePicture() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue());
         if (intent.resolveActivity(getPackageManager()) != null){
             File picture = createPhotoFile();
             if (picture != null){
@@ -231,8 +231,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
     private File createPhotoFile() {
 
-//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String pictureFile = upload.getName(); // + timeStamp;
+        String pictureFile = upload.getName();
         File storageDir = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_PICTURES); // getExternalStoragePublicDirectory
         File image = null;
 
@@ -279,7 +278,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                                         }, 50000);
 
                                         Upload upload = new Upload(name.trim(), uri.toString());
-//                                    showMessage("URI: " +uri.toString());
                                         String uploadId = imageDatabaseRef.push().getKey();
 
                                         imageDatabaseRef.child(uploadId).setValue(upload);
@@ -315,8 +313,9 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     }
 
     private void downloadVideo() {
+        final String videoPerson =  video.getPersonType();
         DatabaseReference database = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference dataRef = database.child("videos").child("unknown");
+        DatabaseReference dataRef = database.child("videos").child(videoPerson);
 
         dataRef.addListenerForSingleValueEvent(new ValueEventListener () {
             @Override
@@ -324,12 +323,6 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
                 for(DataSnapshot singleSnapshot : dataSnapshot.getChildren()){
                     video = singleSnapshot.getValue(Video.class);
                     videos.add(video.getName());
-                    video.setAllNames(videos);
-
-//                   showMessage ("separated[0]: " + separated[0] + "\n separated[1]: " +separated[1] + "\n separated[2]" + separated[2]);
-//
-
-
                 }
             }
             @Override
@@ -344,12 +337,13 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
         if (videos.size() != 0) {
             for (int i = 0; i < videos.size(); i++){
-                ref = storage.child("images/" + user.getDisplayName() + "/unknown/" + videos.get(i));
+                ref = storage.child("images/" + user.getDisplayName() + "/" + videoPerson +"/" + videos.get(i));
                 ref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
                         String url = uri.toString();
-                        downloadFiles(Home.this, "Folders", ".mp4", Environment.DIRECTORY_DOWNLOADS, url);
+
+                        downloadFiles(Home.this, videoPerson, ".mp4", Environment.DIRECTORY_DOWNLOADS, url);
                     }
 
                 }).addOnFailureListener(new OnFailureListener() {
@@ -414,14 +408,24 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
         Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void applyTexts(String personName){
         upload.setName(personName);
 
-        if (chosable.getChosen() == true){
-            choosePicture();
-        } else {
-            takePicture();
+        if (downloadableAcquaintances.getDownloadable() == true){
+
+            personName = personName.toLowerCase();
+            String[] splited = personName.trim().split("\\s+");
+            String joined = String.join("-", splited);
+            video.setPersonType(joined);
+            downloadVideo ();
+        } else if (downloadableAcquaintances.getDownloadable() == false){
+             if (chosable.getChosen() == true){
+                choosePicture();
+            } else {
+                takePicture();
+            }
         }
 
     }

@@ -24,13 +24,16 @@
                 android:title="Emergency Call"/>
             <item android:id="@+id/nav_add_photo"
                 android:icon="@drawable/ic_add_photo"
-                android:title="Upload Image"/>
+                android:title="Picture from Gallery"/>
             <item android:id="@+id/nav_take_photo"
                 android:icon="@drawable/ic_take_photo"
-                android:title="Take Picture"/>
-            <item android:id="@+id/nav_download_video"
+                android:title="Take a Photo"/>
+            <item android:id="@+id/nav_download_unknown"
                 android:icon="@drawable/ic_download"
                 android:title="Unknown People"/>
+            <item android:id="@+id/nav_download_acquaintances"
+                android:icon="@drawable/ic_download"
+                android:title="Acquaintances"/>
         </menu>
     </item>
 
