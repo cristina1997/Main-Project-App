@@ -3,8 +3,10 @@ package sw.gmit.ie.crist.cameradetection.Activities;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.*;
 
@@ -124,7 +126,7 @@ public class Login extends AppCompatActivity {
     private void updateHomeUI() {
         HomeActivity = new Intent(getApplicationContext(),Home.class);          // it gets the home activity class
         startActivity(HomeActivity);                                            // it redirects the user to the home activity
-        signeable.setSignedIn(true);                                                 // user is already signed in
+        signeable.setSignedIn(true);                                            // user is already signed in
         finish();                                                               // finishes this activity
     }
 

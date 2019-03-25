@@ -1,9 +1,11 @@
 package sw.gmit.ie.crist.cameradetection.Activities;
 
 import android.content.*;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.annotation.*;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
@@ -20,6 +22,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
 import com.google.firebase.storage.*;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Request;
 
 import org.w3c.dom.Text;
 
@@ -33,7 +36,7 @@ public class ProfileFragment extends Fragment {
     private static final int PICK_IMAGE_REQUEST = 1;
 
     // Image Variables
-    private Button btnChooseImg, btnUploadImg;
+    private ImageButton btnChooseImg, btnUploadImg, btnTakePic;
     protected ImageView imgView;
     private EditText imgText;
     private ProgressBar imgProgressBar;
@@ -65,37 +68,47 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
         getActivity().setTitle("Home");
-//        initVariables(rootView);
+        initVariables(rootView);
 
         user = mAuth.getInstance().getCurrentUser();
 
 
         pickImage();
-        uploadImage();
         return rootView;
     }
 
-//    private void initVariables(View rootView) {
-//        btnChooseImg = (Button) rootView.findViewById(R.id.chooseImgBtn);
-//        btnUploadImg = (Button) rootView.findViewById(R.id.uploadBtn);
-//        imgView = (ImageView) rootView.findViewById(R.id.imageView);
-//        imgText = (EditText) rootView.findViewById(R.id.imgName);
-//        imgProgressBar = (ProgressBar) rootView.findViewById(R.id.imgProgress);
-//    }
+    private void initVariables(View rootView) {
+        btnChooseImg = (ImageButton) rootView.findViewById(R.id.chooseImgBtn);
+        btnUploadImg = (ImageButton) rootView.findViewById(R.id.uploadImgBtn);
+        btnTakePic = (ImageButton) rootView.findViewById(R.id.takeImgBtn);
+        imgView = (ImageView) rootView.findViewById(R.id.imageView);
+        imgText = (EditText) rootView.findViewById(R.id.imgName);
+        imgProgressBar = (ProgressBar) rootView.findViewById(R.id.imgProgress);
+    }
 
     private void pickImage() {
-        btnChooseImg.setOnClickListener(new View.OnClickListener() {
+//        btnChooseImg.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                if (isTextEmpty() == false){
+//                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+//                    intent.setType("image/*");
+//                    startActivityForResult(intent, ImageReq.CHOOSE_IMAGE_REQUEST.getValue());
+//                }
+//                userFirebaseStorage();
+//                uploadImage();
+//            }
+//        });
+
+        btnTakePic.setOnClickListener (new View.OnClickListener () {
             @Override
             public void onClick(View v) {
-                isTextEmpty();
-
                 if (isTextEmpty() == false){
-                    Intent intent = new Intent();
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue());
                     intent.setType("image/*");
-                    intent.setAction(Intent.ACTION_GET_CONTENT);
-                    startActivityForResult(intent, PICK_IMAGE_REQUEST);
                 }
-                userFirebaseStorage();
             }
         });
 
@@ -164,7 +177,6 @@ public class ProfileFragment extends Fragment {
 
                                 Upload upload = new Upload(imgText.getText().toString().trim(),
                                        uri.toString());
-                                showMessage("URI: " +uri.toString());
                                 String uploadId = imageDatabaseRef.push().getKey();
 
                                 imageDatabaseRef.child(uploadId).setValue(upload);
@@ -198,12 +210,16 @@ public class ProfileFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
-                && data != null && data.getData() != null) {
-            imgURI = data.getData();
+        if (resultCode == RESULT_OK) {
+            if (requestCode == ImageReq.CHOOSE_IMAGE_REQUEST.getValue() && data != null && data.getData() != null){
+                imgURI = data.getData();
+                imgView.setImageURI(imgURI);
+            } else if (requestCode == ImageReq.TAKE_IMAGE_REQUEST.getValue()){
+                imgURI = data.getData();
+                imgView.setImageURI(imgURI);
+                showMessage ("" +imgURI);
+            }
 
-//            Picasso.with(this).load(imgURI).into(imgView);
-            imgView.setImageURI(imgURI);
         }
     }
 
