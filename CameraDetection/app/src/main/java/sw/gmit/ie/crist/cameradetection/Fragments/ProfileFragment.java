@@ -46,7 +46,6 @@ public class ProfileFragment extends Fragment {
     private StorageTask uploadTask;
     private String userDisplayName, personName, pathToFile;
 
-
     // Firebase Database Variables
     private StorageReference imageStorageRef;
     private DatabaseReference imageDatabaseRef;
