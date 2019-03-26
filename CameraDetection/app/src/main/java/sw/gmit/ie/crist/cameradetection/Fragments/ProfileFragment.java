@@ -32,49 +32,33 @@ import java.io.IOException;
 import static android.app.Activity.RESULT_OK;
 
 import sw.gmit.ie.crist.cameradetection.Enums.ImageReq;
+import sw.gmit.ie.crist.cameradetection.Models.Profile;
 import sw.gmit.ie.crist.cameradetection.Models.UploadPictures;
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class ProfileFragment extends Fragment {
-    private static final int PICK_IMAGE_REQUEST = 1;
-
-    // Image Variables
-    private ImageButton btnChooseImg, btnUploadImg, btnTakePic;
-    protected ImageView imgView;
-    private EditText imgText;
-    private ProgressBar imgProgressBar;
+    // Firebase Variables
+    private final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     // Image Upload variables
-    private StorageTask uploadTask;
-    private String userDisplayName, personName;
-    private Uri imgURI, photoURI;
-    private String pathToFile;
     private UploadPictures uploadPictures = new UploadPictures();
-    public EditText getImgText() {
-        return imgText;
-    }
+    private Uri imgURI, photoURI;
+    private StorageTask uploadTask;
+    private String userDisplayName, personName, pathToFile;
+
 
     // Firebase Database Variables
     private StorageReference imageStorageRef;
     private DatabaseReference imageDatabaseRef;
 
-    // Firebase Variables
-    private FirebaseAuth mAuth;
-    private FirebaseUser user;
-
-    public void setImgText(EditText imgText) {
-        this.imgText = imgText;
-    }
-
+    // Model
+    private Profile profile = new Profile();
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
-        getActivity().setTitle("Home");
-        initVariables(rootView);
-
-        user = mAuth.getInstance().getCurrentUser();
+        init(rootView);
 
         if (Build.VERSION.SDK_INT >= 23){
             requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
@@ -84,21 +68,35 @@ public class ProfileFragment extends Fragment {
         return rootView;
     }
 
-    private void initVariables(View rootView) {
-        btnChooseImg = (ImageButton) rootView.findViewById(R.id.chooseImgBtn);
-        btnUploadImg = (ImageButton) rootView.findViewById(R.id.uploadImgBtn);
-        btnTakePic = (ImageButton) rootView.findViewById(R.id.takeImgBtn);
-        imgView = (ImageView) rootView.findViewById(R.id.imageView);
-        imgText = (EditText) rootView.findViewById(R.id.imgName);
-        imgProgressBar = (ProgressBar) rootView.findViewById(R.id.imgProgress);
+    /************************************************
+                        Init
+     ***********************************************/
+    private void init(View rootView) {
+        getActivity().setTitle("Home");
+        initVariables(rootView);
     }
 
+    /************************************************
+                Initialize Variables
+     ***********************************************/
+    private void initVariables(View rootView) {
+        profile.setBtnChooseImg((ImageButton) rootView.findViewById (R.id.chooseImgBtn));
+        profile.setBtnUploadImg((ImageButton) rootView.findViewById (R.id.uploadImgBtn));
+        profile.setBtnTakePic((ImageButton) rootView.findViewById (R.id.takeImgBtn));
+        profile.setImgView((ImageView) rootView.findViewById (R.id.imageView));
+        profile.setImgText((EditText) rootView.findViewById (R.id.imgName));
+        profile.setImgProgressBar((ProgressBar) rootView.findViewById (R.id.imgProgress));
+    }
+
+    /************************************************
+                        Pick Image
+     ***********************************************/
     private void pickImage() {
-        btnChooseImg.setOnClickListener(new View.OnClickListener() {
+        profile.getBtnChooseImg().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (isTextEmpty() == false){
-                    uploadPictures.setName(getImgText().getText().toString());
+                    uploadPictures.setName(profile.getImgText().getText().toString());
                     Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                     intent.setType("image/*");
                     startActivityForResult(intent, ImageReq.CHOOSE_IMAGE_REQUEST.getValue());
@@ -108,12 +106,12 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        btnTakePic.setOnClickListener (new View.OnClickListener () {
+        profile.getBtnTakePic().setOnClickListener (new View.OnClickListener () {
             @Override
             public void onClick(View v) {
                 if (isTextEmpty() == false){
-                    uploadPictures.setName(getImgText().getText().toString());
-                    personName = getImgText().getText().toString();
+                    uploadPictures.setName(profile.getImgText().getText().toString());
+                    personName = profile.getImgText().getText().toString();
                     Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     if (intent.resolveActivity(getActivity().getPackageManager()) != null){
                         File picture = createPhotoFile();
@@ -135,12 +133,14 @@ public class ProfileFragment extends Fragment {
 
     }
 
+    /************************************************
+                Create Photo File
+     ***********************************************/
     private File createPhotoFile() {
 
         String pictureFile = uploadPictures.getName();
         File storageDir = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_PICTURES); // getExternalStoragePublicDirectory
         File image = null;
-
 
         try {
             image = File.createTempFile(pictureFile,  ".jpg", storageDir);
@@ -159,17 +159,17 @@ public class ProfileFragment extends Fragment {
     }
 
      private boolean isTextEmpty() {
-        if( TextUtils.isEmpty(imgText.getText())){
-            imgText.setError( "Enter person's name" );
+        if( TextUtils.isEmpty(profile.getImgText().getText())){
+            profile.getImgText().setError( "Enter person's name" );
             return true;
         } else {
-            setImgText(imgText);
+            profile.setImgText(profile.getImgText());
             return false;
         }
     }
 
     private void uploadImage() {
-        btnUploadImg.setOnClickListener(new View.OnClickListener() {
+        profile.getBtnUploadImg().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (uploadTask != null && uploadTask.isInProgress()){
@@ -213,12 +213,12 @@ public class ProfileFragment extends Fragment {
                                 handler.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        imgProgressBar.setProgress(0);
+                                        profile.getImgProgressBar().setProgress(0);
 
                                     }
                                 }, 500);
 
-                                UploadPictures uploadPictures = new UploadPictures(imgText.getText().toString().trim(),
+                                UploadPictures uploadPictures = new UploadPictures(profile.getImgText().getText().toString().trim(),
                                        uri.toString());
                                 String uploadId = imageDatabaseRef.push().getKey();
 
@@ -240,7 +240,7 @@ public class ProfileFragment extends Fragment {
                     public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
                         //  Progressing upload - update progress bar with current progress
                         double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
-                        imgProgressBar.setProgress((int) progress);
+                        profile.getImgProgressBar().setProgress((int) progress);
                     }
                 });
 
@@ -256,10 +256,10 @@ public class ProfileFragment extends Fragment {
         if (resultCode == RESULT_OK) {
             if (requestCode == ImageReq.CHOOSE_IMAGE_REQUEST.getValue() && data != null && data.getData() != null){
                 imgURI = data.getData();
-                imgView.setImageURI(imgURI);
+                profile.getImgView().setImageURI(imgURI);
             } else if (requestCode == ImageReq.TAKE_IMAGE_REQUEST.getValue()){
                 imgURI = photoURI;
-                imgView.setImageURI(imgURI);
+                profile.getImgView().setImageURI(imgURI);
             }
 
         }

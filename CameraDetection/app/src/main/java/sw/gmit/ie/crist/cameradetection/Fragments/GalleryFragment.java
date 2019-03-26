@@ -21,7 +21,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import sw.gmit.ie.crist.cameradetection.Models.UploadPictures;
-import sw.gmit.ie.crist.cameradetection.Activities.ViewHolder;
+import sw.gmit.ie.crist.cameradetection.Fragments.Holder.ViewHolder;
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class GalleryFragment extends Fragment {

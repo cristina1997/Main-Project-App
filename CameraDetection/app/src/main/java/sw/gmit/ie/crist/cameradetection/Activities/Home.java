@@ -43,6 +43,8 @@ import sw.gmit.ie.crist.cameradetection.Fragments.GalleryFragment;
 import sw.gmit.ie.crist.cameradetection.Fragments.ProfileFragment;
 import sw.gmit.ie.crist.cameradetection.Models.Video;
 import sw.gmit.ie.crist.cameradetection.R;
+import sw.gmit.ie.crist.cameradetection.Readable.DownloadableAcq;
+import sw.gmit.ie.crist.cameradetection.Readable.Signeable;
 
 public class Home extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NameDialog.NameDialogListener {
     // Firebase
@@ -62,7 +64,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
 
     // Boolean Instantiations
     private Signeable signeable = new Signeable();
-    private DownloadableAcquaintances downloadableAcquaintances = new DownloadableAcquaintances ();
+    private DownloadableAcq downloadableAcq = new DownloadableAcq ();
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -87,7 +89,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     }
 
     /************************************************
-                    Initialize
+                        Init
      ***********************************************/
     private void init(Bundle savedInstanceState) {
         setContentView(R.layout.activity_home);  // shows the home page at the start of the application
@@ -99,7 +101,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     }
 
     /************************************************
-                        Variables
+                Initialize Variables
      ***********************************************/
     private void initVariables(){
         navMenu.setToolbar((Toolbar) findViewById(R.id.toolbar));
@@ -159,12 +161,12 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
             case R.id.nav_call_911:
                 break;
             case R.id.nav_download_unknown:
-                downloadableAcquaintances.setDownloadable(false);
+                downloadableAcq.setDownloadable(false);
                 video.setPersonType("unknown");
                 downloadVideo();
                 break;
             case R.id.nav_download_acquaintances:
-                downloadableAcquaintances.setDownloadable(true);
+                downloadableAcq.setDownloadable(true);
                 openDialog();
                 break;
             default:
@@ -297,7 +299,7 @@ public class Home extends AppCompatActivity implements NavigationView.OnNavigati
     public void applyTexts(String personName){
         video.setPersonTypeUnchanged(personName);
 
-        if (downloadableAcquaintances.getDownloadable() == true){
+        if (downloadableAcq.getDownloadable() == true){
             video.setPersonType(splitAndJoin(personName));
             downloadVideo ();
         }

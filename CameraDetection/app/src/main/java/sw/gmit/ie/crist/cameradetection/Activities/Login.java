@@ -3,10 +3,7 @@ package sw.gmit.ie.crist.cameradetection.Activities;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
-import android.support.design.widget.NavigationView;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.*;
 
@@ -14,10 +11,11 @@ import com.google.android.gms.tasks.*;
 import com.google.firebase.auth.*;
 
 import sw.gmit.ie.crist.cameradetection.R;
+import sw.gmit.ie.crist.cameradetection.Readable.Signeable;
 
 public class Login extends AppCompatActivity {
     // Login variables
-    private ButtonVisibility bs = new ButtonVisibility();
+    private ButtonVisibility bv = new ButtonVisibility();
     private EditText userEmail, userPass;
     private Button btnLogin, btnRegActivity;
     private ProgressBar loginProgress;
@@ -86,13 +84,13 @@ public class Login extends AppCompatActivity {
                 final String email = userEmail.getText().toString();
                 final String password = userPass.getText().toString();
 
-                bs.hideBtn(btnLogin, loginProgress);
+                bv.hideBtn(btnLogin, loginProgress);
 
                 // If there is no input then show a message
                 if (email.isEmpty() || password.isEmpty()){
                     showMessage("Please verify all fields");
 
-                    bs.showBtn(btnLogin, loginProgress);
+                    bv.showBtn(btnLogin, loginProgress);
                 } else {
                     // signs in the user
                     getSignIn(email, password);
@@ -107,11 +105,11 @@ public class Login extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()){
-                    bs.hideBtn(btnLogin, loginProgress);
+                    bv.hideBtn(btnLogin, loginProgress);
                     updateHomeUI();
                 } else {
                     showMessage(task.getException().getMessage());
-                    bs.showBtn(btnLogin, loginProgress);
+                    bv.showBtn(btnLogin, loginProgress);
                 }
             }
         });

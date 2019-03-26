@@ -1,4 +1,4 @@
-package sw.gmit.ie.crist.cameradetection.Activities;
+package sw.gmit.ie.crist.cameradetection.Fragments.Holder;
 
 import android.content.Context;
 import android.support.annotation.NonNull;

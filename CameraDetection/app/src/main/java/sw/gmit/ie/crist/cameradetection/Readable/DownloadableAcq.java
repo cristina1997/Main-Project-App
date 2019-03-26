@@ -1,6 +1,6 @@
-package sw.gmit.ie.crist.cameradetection.Activities;
+package sw.gmit.ie.crist.cameradetection.Readable;
 
-public class DownloadableAcquaintances {
+public class DownloadableAcq {
     private boolean isDownloadable;
 
     public boolean getDownloadable() {

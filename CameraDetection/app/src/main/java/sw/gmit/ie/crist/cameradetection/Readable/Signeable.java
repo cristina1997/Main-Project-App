@@ -1,4 +1,4 @@
-package sw.gmit.ie.crist.cameradetection.Activities;
+package sw.gmit.ie.crist.cameradetection.Readable;
 
 public class Signeable {
     private boolean isSignedIn;

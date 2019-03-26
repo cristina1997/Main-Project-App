@@ -3,6 +3,8 @@ package sw.gmit.ie.crist.cameradetection.Activities;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 
+import sw.gmit.ie.crist.cameradetection.Readable.Signeable;
+
 public class Redirect extends AppCompatActivity {
     private Intent HomeActivity, RegisterActivity, LoginActivity;
     private Signeable signeable = new Signeable();
