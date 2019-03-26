@@ -1,8 +1,7 @@
-package sw.gmit.ie.crist.cameradetection.Activities;
+package sw.gmit.ie.crist.cameradetection.Fragments;
 
 import android.Manifest;
 import android.content.*;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,17 +25,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
 import com.google.firebase.storage.*;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Request;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 
 import static android.app.Activity.RESULT_OK;
 
+import sw.gmit.ie.crist.cameradetection.Enums.ImageReq;
+import sw.gmit.ie.crist.cameradetection.Models.UploadPictures;
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class ProfileFragment extends Fragment {

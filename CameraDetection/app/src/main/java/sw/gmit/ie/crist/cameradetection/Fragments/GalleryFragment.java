@@ -1,12 +1,10 @@
-package sw.gmit.ie.crist.cameradetection.Activities;
+package sw.gmit.ie.crist.cameradetection.Fragments;
 
 
 import android.os.Bundle;
 import android.support.annotation.*;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -22,6 +20,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import sw.gmit.ie.crist.cameradetection.Models.UploadPictures;
+import sw.gmit.ie.crist.cameradetection.Activities.ViewHolder;
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class GalleryFragment extends Fragment {

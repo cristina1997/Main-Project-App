@@ -11,11 +11,12 @@ import com.google.android.gms.tasks.*;
 import com.google.firebase.auth.*;
 import com.google.firebase.database.*;
 
+import sw.gmit.ie.crist.cameradetection.Models.UserDatabaseCreation;
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class Register extends AppCompatActivity {
 
-    private final UserDatabase userDatabase = new UserDatabase ();
+    private final UserDatabaseCreation userDatabaseCreation = new UserDatabaseCreation ();
     // Register variables
     private ButtonVisibility bs = new ButtonVisibility();
     private EditText userName, userEmail, userPass, userPassConfig;
@@ -35,9 +36,9 @@ public class Register extends AppCompatActivity {
 
         registerProgress.setVisibility(View.INVISIBLE);     // progress bar visibility is initially invisible
 
-        userDatabase.mAuth = FirebaseAuth.getInstance ();                 // firebase authentification instance
-        userDatabase.userDatabaseRef = FirebaseDatabase.getInstance ()    // firebase database instance creates
-                .getReference ("users");          //     -> a "users" reference on the database
+        userDatabaseCreation.setmAuth(FirebaseAuth.getInstance());                 // firebase authentification instance
+        userDatabaseCreation.setUserDatabaseRef(FirebaseDatabase.getInstance ()    // firebase database instance creates
+                .getReference ("users"));          //     -> a "users" reference on the database
         register();
 
     }
@@ -90,14 +91,14 @@ public class Register extends AppCompatActivity {
 
     @NonNull
     private Task<AuthResult> getAuthResultTask(final String name, final String email, String pass) {
-        return userDatabase.mAuth.createUserWithEmailAndPassword(email, pass).
+        return userDatabaseCreation.getmAuth().createUserWithEmailAndPassword(email, pass).
         addOnCompleteListener(this, new OnCompleteListener<AuthResult> () {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
             // registration successful
             if (task.isSuccessful()) {
 
-                userDatabase.createUserDatabase (name, email);
+                userDatabaseCreation.createUserDatabase (name, email);
 
                 // it gets the current user
                 FirebaseUser firebaseUser = FirebaseAuth
@@ -124,7 +125,7 @@ public class Register extends AppCompatActivity {
 
 
     private void createUserDatabase(final String name, String email) {
-        userDatabase.createUserDatabase (name, email);
+        userDatabaseCreation.createUserDatabase (name, email);
     }
 
     // redirects the user to the login page
