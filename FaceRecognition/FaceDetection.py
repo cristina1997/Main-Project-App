@@ -8,13 +8,14 @@ import pickle
 from google.cloud import storage
 import re
 import pyrebase
-import json
 import objectpath
 import time
 from imutils.video import VideoStream
 import imutils
 import datetime
 from pusher_push_notifications import PushNotifications
+import sys 
+
 
 
 
@@ -137,6 +138,7 @@ for page in iterator.pages:
 #print (type(prefixes))
 test = ', '.join(prefixes)
 #print (test)
+    
 
 def uploading_files():
     # Enable Storage
@@ -183,9 +185,6 @@ def checking_folder():
         else:
             #print("The Folder Doesnt Exist")
             os.mkdir(folder)
-
-
-
 
 
 
@@ -237,10 +236,13 @@ def face_detection():
     global names
     global recognized
     global filename
+    global out
+    global notifyName
+    global iName
     
-    recognized = [""]
-        
     capture_duration = 10
+    recognized = [""]
+    
     filename = ( datetime.datetime.now().strftime("%A%d%B%Y%I%M%S%p")+".mp4")
     #print (filename)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -254,75 +256,94 @@ def face_detection():
     	og_labels = pickle.load(f)
     	labels = {v:k for k,v in og_labels.items()}
     
- 
+    #print (capture_duration)
     while(True):
+#    if text == ("Occupied"): 
+     
         start_time = time.time()
         while(int(time.time() - start_time) < capture_duration):
 
-        # Capture frame-by-frame
-            ret, frame = cap.read()
-            gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
-            for (x, y, w, h) in faces:
-            	roi_gray = gray[y:y+h, x:x+w] #(ycord_start, ycord_end)
-            	#roi_color = frame[y:y+h, x:x+w]
-            	cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
-            	(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+    # Capture frame-by-frame
+         ret, frame = cap.read()
+         gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+         faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5)
+         for (x, y, w, h) in faces:
+        	 roi_gray = gray[y:y+h, x:x+w] #(ycord_start, ycord_end)
+        	 #roi_color = frame[y:y+h, x:x+w]
+        	 cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
+        	 (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
   
-            	out.write(frame)
-            	# recognize? deep learned model predict keras tensorflow pytorch scikit learn
-            	id_, conf = recognizer.predict(roi_gray)
-            	if conf>=3 and conf <= 85:
+        	 out.write(frame)
+        	# recognize? deep learned model predict keras tensorflow pytorch scikit learn
+        	 id_, conf = recognizer.predict(roi_gray)
+        	 if conf>=3 and conf <= 85:
 
-            		name = labels[id_]
-            		names = name.split()               
-            		if names in name.split() :
-            			break
-            		else:
-            			names = name.split()
-                        
-            		if 'recognized' in recognized :
-            			break
-            		else:
-            			recognized = recognized + ["recognized"]
-                        
-            	else:
+        			name = labels[id_]
+        			names = name.split()               
+        			if names in name.split() :
+        				break
+        			else:
+        				names = name.split()
+                    
+        			if 'recognized' in recognized :
+        				break
+        			else:
+        				recognized = recognized + ["recognized"]
+                    
+        	 else:
 
-            		if 'unrecognized' in recognized :
-            			break
-            		else:
-            			recognized = recognized + ["unrecognized"]  
+        			if 'unrecognized' in recognized :
+        				break
+        			else:
+        				recognized = recognized + ["unrecognized"]  
             		                                 
-
-        color = (255, 0, 0) #BGR 0-255 
-        stroke = 2
-        end_cord_x = x + w
-        end_cord_y = y + h
-        cv2.rectangle(frame, (x, y), (end_cord_x, end_cord_y), color, stroke)
-
+    
+        	 color = (255, 0, 0) #BGR 0-255 
+        	 stroke = 2
+        	 end_cord_x = x + w
+        	 end_cord_y = y + h
+        	 cv2.rectangle(frame, (x, y), (end_cord_x, end_cord_y), color, stroke)
+             
+        
+        space = " "
+        namez = (name.split("-"))                
+        notifyName = (space.join(namez))
+        #print (notifyName.capitalize())
+        
+        iName = displayName
+        iName = name.split()
+        iName = '-'.join(name)
+        iName = str(name).lower()
+        #print (iName)
+   
         cap.release()
         out.release()
         cv2.destroyAllWindows()
-        break
-        #uploading_files()
-        #main()
+#        push_notification()
+        motion_detection()
     
-  
+    #uploading_files()
+    #main()
+      
 def motion_detection():
+
     vs = VideoStream(src=0).start()
-    time.sleep(4.0)
+    #time.sleep(4.0)
+    global text
     
     # initialize the first frame in the video stream
+    #firstFrame = None
+    global firstFrame
     firstFrame = None
     min_area = 500
     # loop over the frames of the video
-    while True:
+    while True :
     	# grab the current frame and initialize the occupied/unoccupied
     	# text
     	frame = vs.read()
     	frame = frame
     	text = "Unoccupied"
-    
+    	 
     	# if the frame could not be grabbed, then we have reached the end
     	# of the video
     	if frame is None:
@@ -361,7 +382,7 @@ def motion_detection():
     		(x, y, w, h) = cv2.boundingRect(c)
     		cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
     		text = "Occupied"
-    
+    		
     	# draw the text and timestamp on the frame
     	cv2.putText(frame, "Room Status: {}".format(text), (10, 20),
     		cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
@@ -376,24 +397,63 @@ def motion_detection():
     
     	# if the `q` key is pressed, break from the lop
     	if key == ord("q"):
+    		vs.stream.release()
+    		vs.stop()                        
+    		cv2.destroyAllWindows()
+    		sys.exit("Exiting Application!")
     		break
-    	if text == ("Occupied"): 
+        
+    	if text == ("Occupied"):           
     		break
     # cleanup the camera and close any open windows
+    
     
     vs.stream.release()
     vs.stop()
     cv2.destroyAllWindows()
-    #face_detection()
+    face_detection()
+    
+    
+      
+def push_notification():
+    
+    
+    
+    beams_client = PushNotifications(
+        instance_id='2f23a1d1-dc77-48d8-8474-d7dda1d9ee14',
+        secret_key='BD15BDBFF5D0A9D5D9D0A42223D54F72027CAB42C527A2C626B3AE626222EC71',
+            
+    )
+    
+    response = beams_client.publish_to_interests(
+        #interests=[displayName[1]],
+        interests=[iName],
+        publish_body={
+            'apns': {
+                'aps': {
+                    'alert': 'Someone is at the door!'
+                }
+            },
+            'fcm': {
+                'notification': {
+                    'title': notifyName.capitalize() + ' is at the door!',
+                  #  'body': name
+                }
+            }
+        }
+    )
+
+    print(response['publishId'])    
+    
 
 def main():         
-  #checking_folder()
-  #downloading_files()
+  checking_folder()
+  downloading_files()
   training_faces()  
-  motion_detection() 
   face_detection()
+  motion_detection()
   uploading_files()
   
 if __name__ == '__main__':
     main()
-    
+
