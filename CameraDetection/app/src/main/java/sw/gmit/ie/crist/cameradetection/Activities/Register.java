@@ -62,7 +62,7 @@ public class Register extends AppCompatActivity {
                 final String email = userEmail.getText().toString();
                 final String pass = userPass.getText().toString();
                 final String pass2 = userPassConfig.getText().toString();
-                bs.hideBtn(regBtn, registerProgress);
+               // bs.hideBtn(regBtn, registerProgress);
 
                 // If there is no input then show a message
                 if ( name.isEmpty() || email.isEmpty() || pass.isEmpty() || !pass.equals(pass2)){
