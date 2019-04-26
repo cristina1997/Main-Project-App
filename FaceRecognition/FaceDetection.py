@@ -230,7 +230,7 @@ def training_faces():
     
 
 def face_detection():
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     face_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_frontalface_alt2.xml')
     global name
     global names
@@ -319,7 +319,7 @@ def face_detection():
         cap.release()
         out.release()
         cv2.destroyAllWindows()
-#        push_notification()
+        push_notification()
         motion_detection()
     
     #uploading_files()
