@@ -41,6 +41,20 @@ To run application simply clone this repository,navigate to FaceRecognition fold
 ## Tasks Completed
 
 ### Stoyan Rizov
-
+- Created Face Recognition (Server Side)
+- Trained the data / faces (Server Side)
+- Designed GUI  (Server Side)
+- Organized Firebase Storage 
+- Installed Rasberry Pi libraries 
+- Created Motion Detection (Server Side)
+- Push Notifications (Server Side)
+- Upload / Download files to/ from Firebase
 
 ### Cristina Nita
+
+
+### Team Work
+- Installed Rasbian on Rasberry Pi
+- Final Report / Dissertation
+- Presentation
+- Pusher (Notifications)
