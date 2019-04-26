@@ -15,7 +15,7 @@ public class EmergencyCall {
 
     private Intent init(){
         intent = new Intent(Intent.ACTION_CALL);
-        intent.setData(Uri.parse("tel:(+353)866623216"));
+        intent.setData(Uri.parse("tel:911"));
         return intent;
     }
 }
