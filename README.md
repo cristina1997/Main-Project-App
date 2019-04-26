@@ -13,20 +13,31 @@ Webcam face recognition door security system capabale of recording, recognizing 
 
 ## Server-Side
 ### Libraries required
-- tkinter
-- cv2
-- os
-- numpy
-- PIL
-- pickle
-- google.cloud
-- pyrebase
+- tkinter (python-tk)
+- cv2 (opencv-contrib-python)
+- os 
+- numpy (numpy)
+- PIL (Pillow)
+- pickle (pickle-mixin)
+- google.cloud (google-cloud)
+- pyrebase (Pyrebase)
 - re
 - json
 - VideoStream
 - imutils
 
+### Installing the libraries 
+Make sure to install all libraries as shown above replace python-tk with the library name.
+> pip install python-tk
+
 ### Running Application
 To run application simply clone this repository,navigate to FaceRecognition folder
 > Run the script: python FaceDetection.py
 > or you can use any python environment compiler.
+
+## Tasks Completed
+
+### Stoyan Rizov
+
+
+### Cristina Nita
