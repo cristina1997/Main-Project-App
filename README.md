@@ -32,7 +32,27 @@ Webcam face recognition door security system capabale of recording, recognizing 
 Make sure to install all libraries as shown above replace python-tk with the library name.
 > pip install python-tk
 
-### Features 
+### Server-Side Features 
+
+##### Authentication:
+User can log in with username and password.
+
+##### Face Recognition:
+Visitors are recognised if they are in the database if not they are stored and displayed as unkown. 
+
+##### Motion Detection:
+Motion detection starts up and if there is any movement , motion detection window is closed and video is being recorded
+for 10 seconds with face recognition.
+
+##### Push Notification:
+As soon as video is finished recording and recognizing push notification is sent to the android user.
+
+##### Upload / Download Firebase Files:
+Every time a video is recorded it is uploaded on the firebase database storage so that the android application 
+can download the video and view it.Every time a user logs in to the database his/her folder is downloaded locally 
+with the pictures related to that account.
+
+
 ### Running Application
 To run application simply clone this repository,navigate to FaceRecognition folder
 > Run the script: python FaceDetection.py
