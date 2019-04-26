@@ -1,4 +1,3 @@
-#https://smallguysit.com/index.php/2017/03/13/python-tkinter-password-entry-box/
 import tkinter
 import cv2 
 import os
@@ -18,14 +17,15 @@ import sys
 
 
 
-
+#Creates the main window , sets the title of it  and the size
 main = tkinter.Tk()
 main.title('Authentication Box')
 main.geometry('400x150')
 
+
 def clear_widget(event):
 
-    # will clear out any entry boxes defined below when the user shifts
+    # clears out the entry when the user focuses over for the email and password
     # focus to the widgets defined below
     if username_box == main.focus_get() and username_box.get() == 'Enter Email':
         username_box.delete(0, tkinter.END)
@@ -34,24 +34,21 @@ def clear_widget(event):
 
 def repopulate_defaults(event):
 
-    # will repopulate the default text previously inside the entry boxes defined below if
-    # the user does not put anything in while focused and changes focus to another widget
+    #basically will set the username box equal to enter username 
+    #basically will set the password box equal to stars or empty
     if username_box != main.focus_get() and username_box.get() == '':
         username_box.insert(0, 'Enter Username')
     elif password_box != main.focus_get() and password_box.get() == '':
         password_box.insert(0, '     ')
 
 def login(*event):
+    #creates a email and password global so it can be accessed anywhere and sets them 
+    #equal to the username and password entered
     global email, password
-    # Able to be called from a key binding or a button click because of the '*event'
-#    print (('Username: ') + username_box.get())
-#    print (('Password: ') + password_box.get())
-    
-
     email = username_box.get() 
     password = password_box.get() 
     
-    
+    #destroys main window
     main.destroy()
     
     
@@ -86,20 +83,18 @@ login_btn = tkinter.Button(main, text='Login', command=login)
 login_btn.bind('<Return>', login)
 login_btn.grid(row=5, column=5, sticky='NESW')
 
-
 main.mainloop()
 
+#sets the os environemt , google application credintials equal to the firebase admin sdk for log in etc.
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="camera-detection-73a01-firebase-adminsdk-e31px-f129000ad6.json"
 
 # Enable Storage
 client = storage.Client()
 
-# Reference an existing bucket.
+# Referencec a bucket
 bucket = client.get_bucket('camera-detection-73a01.appspot.com')
 
-
-
-
+#sets the configurations for the firebase
 config = {
     "apiKey": "AIzaSyBpRsAequKTjY25_ew-RutT31eE4COHU9E",
     "authDomain": "camera-detection-73a01.firebaseapp.com",
@@ -108,28 +103,33 @@ config = {
     "storageBucket": "camera-detection-73a01.appspot.com",
     "messagingSenderId": "56675147413"
 }
-
+#initializes firebase and uses the configurations above
 firebase = pyrebase.initialize_app(config)
-
+#begins authorising
 auth = firebase.auth()
-
+#sets the username and password and signs into firebase
 user = auth.sign_in_with_email_and_password(email,password)
-
+#gets the username information from the database(firebase)
 users = (auth.get_account_info(user['idToken']))
-
+#converts it to tree
 tree_obj = objectpath.Tree(users)
-
+#converts it to tuple so that it can be displayed and used later on
 displayName = tuple(tree_obj.execute('$..displayName'))
-
+#sets displayName to the actual display name of the user that logged in
 displayName = (displayName[1])
-
+#sets the prefix to images so that your in the bucket /images
 prefix='images/' + displayName + '/' 
+#assigns folder for future use
 folder = {}
+#character list putting the folder to be images and the user name
 char_list = ['/images/' + displayName]
+#creates a list
 list = {}
+#sets blobs to the bucket with the prefixes
 blobs = bucket.list_blobs(prefix=prefix)
+#download directory for firebase
 dl_dir = 'images/' + displayName
-
+#sets iterator to the prefix and delimiter / to find out the folders in the bucket
 iterator = bucket.list_blobs(prefix=prefix, delimiter='/')
 prefixes = set()
 for page in iterator.pages:
@@ -143,19 +143,21 @@ test = ', '.join(prefixes)
 def uploading_files():
     # Enable Storage
     client = storage.Client()
+    # Enables Storage
     db = firebase.database()
     
     # Reference an existing bucket.
     bucket = client.get_bucket('camera-detection-73a01.appspot.com')
    # print (recognized)
    # print (names)
-    
+   
+    #if it is recognized to save the file in the folder related to the username
     if 'recognized' in recognized :
        #Upload a local file to a new file to be created in your bucket.
         zebraBlob = bucket.blob(prefix + name + "/"  + filename)
         zebraBlob.upload_from_filename(filename=filename)
         db.child("videos").child(name).push({"name":filename})
-        
+    #if its not recognized to save the file in the folder called unkown   
     if 'unrecognized' in recognized :
         zebraBlob = bucket.blob(prefix + "unknown" + "/"  + filename)
         zebraBlob.upload_from_filename(filename=filename)
@@ -164,6 +166,7 @@ def uploading_files():
 
 
 def downloading_files():
+    #for loop to check the files that jpg and png (pictures) at the end and list them and save them locally 
     for blob in blobs:
         list = blob.name
             
@@ -178,10 +181,11 @@ def downloading_files():
                 
                 
 def checking_folder():
+    #for loop to check if what your download is already there locally, if the folder exists
     for folder in prefixes:
         if os.path.isdir(folder):    
             print ("The Folder Already Exists")
-           
+        #if it doesnt exist then create it (the folder)   
         else:
             #print("The Folder Doesnt Exist")
             os.mkdir(folder)
@@ -189,49 +193,63 @@ def checking_folder():
 
 
 def training_faces():
-
+    #base directory , basically the directory of this file,sets the directory called images
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     image_dir = os.path.join(BASE_DIR, "images")
     
+    #face classifier provided by the OpenCV library (API)
     face_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_frontalface_alt2.xml')
+    #uses cv2 face recognizer 
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     
-    
+    #creates variables for the training
     current_id = 0
     label_ids = {}
     y_labels = []
     x_train = []
-    
+    #for loop going through the folder
     for root, dirs, files in os.walk(image_dir):
     	for file in files:
+            #looks for png and jpg files in folders
+            #sets the path and label equal to the folder
+            #replaces empty with - for example stoyan-rizov
     		if file.endswith("png") or file.endswith("jpg"):
     			path = os.path.join(root, file)
     			label = os.path.basename(root).replace(" ", "-").lower()
     			if not label in label_ids:
     				label_ids[label] = current_id
     				current_id += 1
+             #sets the id to the label id (stoyan for example)       
     			id_ = label_ids[label]
+            #converts the image to grayscale   
     			pil_image = Image.open(path).convert("L") # grayscale
+             #size of image 550 , 550   
     			size = (550, 550)
+             #resizes image   
     			final_image = pil_image.resize(size, Image.ANTIALIAS)
+            #numpy array    
     			image_array = np.array(final_image, "uint8")
     			faces = face_cascade.detectMultiScale(image_array, scaleFactor=1.1, minNeighbors=5)
-    
+             #for loop for the faces trains the x and y labels
     			for (x,y,w,h) in faces:
     				roi = image_array[y:y+h, x:x+w]
     				x_train.append(roi)
     				y_labels.append(id_)
-    
+    #saves it in pickles face labels
     with open("pickles/face-labels.pickle", 'wb') as f:
     	pickle.dump(label_ids, f)
-    
+    #trains the data and saves it in the pickle file
     recognizer.train(x_train, np.array(y_labels))
     recognizer.save("recognizers/face-trainner.yml")
     
 
 def face_detection():
-    cap = cv2.VideoCapture(1)
+    #sets the webcam on 
+    cap = cv2.VideoCapture(0)
+    #uses the cv2 cascade clasifier (frontal face)
     face_cascade = cv2.CascadeClassifier('cascades/data/haarcascade_frontalface_alt2.xml')
+    
+    #sets global variabls  
     global name
     global names
     global recognized
@@ -240,14 +258,18 @@ def face_detection():
     global notifyName
     global iName
     
+    #the duration for the video capture
     capture_duration = 10
+    #sets recognized class
     recognized = [""]
-    
+    #sets filename to current date , time and mp4
     filename = ( datetime.datetime.now().strftime("%A%d%B%Y%I%M%S%p")+".mp4")
     #print (filename)
+    #assigns the video writer to mp4 format
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    #output of the file to the filename fourcc 20 frames per second and resolution 640,480
     out = cv2.VideoWriter(filename,fourcc, 20, (640,480))    
-    
+    #recognizes face using cv2 library
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     recognizer.read("./recognizers/face-trainner.yml")
     
@@ -272,7 +294,7 @@ def face_detection():
         	 #roi_color = frame[y:y+h, x:x+w]
         	 cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
         	 (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-  
+           #writes the file (starts recording)  
         	 out.write(frame)
         	# recognize? deep learned model predict keras tensorflow pytorch scikit learn
         	 id_, conf = recognizer.predict(roi_gray)
@@ -304,12 +326,13 @@ def face_detection():
         	 end_cord_y = y + h
         	 cv2.rectangle(frame, (x, y), (end_cord_x, end_cord_y), color, stroke)
              
-        
+        #converts it so that it can be used in push notification
         space = " "
         namez = (name.split("-"))                
         notifyName = (space.join(namez))
         #print (notifyName.capitalize())
         
+        #converts it so that it can be used in push notification
         iName = displayName
         iName = name.split()
         iName = '-'.join(name)
