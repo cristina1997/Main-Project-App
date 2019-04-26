@@ -36,7 +36,7 @@ Make sure to install all libraries as shown above replace python-tk with the lib
 ### Running Application
 To run application simply clone this repository,navigate to FaceRecognition folder
 > Run the script: python FaceDetection.py
-> or you can use any python environment compiler.
+> or you can use any python environment compiler (I used Spyder IDE ).
 
 ## Tasks Completed
 
