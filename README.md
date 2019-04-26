@@ -10,6 +10,8 @@ Webcam face recognition door security system capabale of recording, recognizing 
 
 ## Android Application
 
+### Features
+
 
 ## Server-Side
 ### Libraries required
@@ -30,6 +32,7 @@ Webcam face recognition door security system capabale of recording, recognizing 
 Make sure to install all libraries as shown above replace python-tk with the library name.
 > pip install python-tk
 
+### Features 
 ### Running Application
 To run application simply clone this repository,navigate to FaceRecognition folder
 > Run the script: python FaceDetection.py
