@@ -12,6 +12,27 @@ Webcam face recognition door security system capabale of recording, recognizing 
 
 ### Features
 
+##### Authentication:
+User can log in with username and password.
+
+##### Registration:
+User can register with their name, username and password.
+
+##### Face Recognition:
+Visitors are recognised if they are in the database if not they are stored and displayed as unkown. 
+
+##### Pull Notification:
+As soon as video is finished recording and recognizing a pull notification is receibed by the android user with the name of the person in the video.
+
+##### Upload / Download Firebase Files:
+The user can upload images to the database as well as download videos from the firebase.
+
+##### Emergency Call:
+The user can call 911 directly from the mobile.
+
+### Running Application
+To run application simply clone this repository, navigate to CameraDetection folder
+> Use Android Studio to run the project
 
 ## Server-Side
 ### Libraries required
@@ -71,7 +92,13 @@ To run application simply clone this repository,navigate to FaceRecognition fold
 - Upload / Download files to/ from Firebase
 
 ### Cristina Nita
-
+- User Authentification Login/Registration (Server Side)
+- Uploading Images (Client Side)
+- Downloading Videos (Client Side)
+- Firebase Database Creation
+- Emergency Call (Client Side)
+- Pull Notifications (Client Side)
+- Download videos from Firebase
 
 ### Team Work
 - Installed Rasbian on Rasberry Pi
