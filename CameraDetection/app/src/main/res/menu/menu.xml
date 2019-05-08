@@ -5,31 +5,36 @@
     tools:showIn="navigation_view">
 
     <group android:checkableBehavior="single">
-        <item android:id="@+id/nav_profile"
+        <item
+            android:id="@+id/nav_profile"
             android:icon="@drawable/ic_profile"
-            android:title="Profile"/>
-        <item android:id="@+id/nav_gallery"
+            android:title="Profile" />
+        <item
+            android:id="@+id/nav_gallery"
             android:icon="@drawable/ic_gallery"
-            android:title="Gallery"/>
+            android:title="Gallery" />
     </group>
 
 
     <item android:title="Emergency Call">
         <menu>
-            <item android:id="@+id/nav_call_911"
+            <item
+                android:id="@+id/nav_call_911"
                 android:icon="@drawable/ic_call_911"
-                android:title="911"/>
+                android:title="911" />
         </menu>
     </item>
 
     <item android:title="Download Videos">
         <menu>
-            <item android:id="@+id/nav_download_unknown"
+            <item
+                android:id="@+id/nav_download_unknown"
                 android:icon="@drawable/ic_download"
-                android:title="Unknown People"/>
-            <item android:id="@+id/nav_download_acquaintances"
+                android:title="Unknown People" />
+            <item
+                android:id="@+id/nav_download_acquaintances"
                 android:icon="@drawable/ic_download"
-                android:title="Acquaintances"/>
+                android:title="Acquaintances" />
         </menu>
     </item>
 </menu>

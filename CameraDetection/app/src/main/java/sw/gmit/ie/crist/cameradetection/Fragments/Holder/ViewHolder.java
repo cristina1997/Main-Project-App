@@ -21,16 +21,16 @@ public class ViewHolder extends RecyclerView.ViewHolder {
     private View view;
 
     public ViewHolder(View itemView) {
-        super(itemView);
+        super (itemView);
         view = itemView;
     }
 
-    public void setDetails(Context context, String name, String image){
-        TextView imageName = view.findViewById(R.id.tv_item_name);
-        ImageView imageView = view.findViewById(R.id.iv_item_upload);
+    public void setDetails(Context context, String name, String image) {
+        TextView imageName = view.findViewById (R.id.tv_item_name);
+        ImageView imageView = view.findViewById (R.id.iv_item_upload);
 
-        imageName.setText(name);
-        PicassoProvider.get().load(image).into(imageView);
+        imageName.setText (name);
+        PicassoProvider.get ().load (image).into (imageView);
 
     }
 

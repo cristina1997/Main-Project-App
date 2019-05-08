@@ -9,10 +9,10 @@
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
     <!--<ImageView-->
-        <!--android:id="@+id/navImage"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:src="@drawable/ic_nav_image"/>-->
+    <!--android:id="@+id/navImage"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:src="@drawable/ic_nav_image"/>-->
 
     <TextView
         android:id="@+id/navUserName"
@@ -22,7 +22,7 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <!--<TextView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="info@codinginflow.com" />-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:text="info@codinginflow.com" />-->
 </LinearLayout>

@@ -1,8 +1,9 @@
 package sw.gmit.ie.crist.cameradetection.Readable;
 
 public class Signeable {
-    private boolean isSignedIn;
+    private boolean isSignedIn; // is the user signed in?
 
+    // Getters and setters
     public boolean getSignedIn() {
         return isSignedIn;
     }

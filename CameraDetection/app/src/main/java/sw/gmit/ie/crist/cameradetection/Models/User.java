@@ -1,16 +1,20 @@
 package sw.gmit.ie.crist.cameradetection.Models;
 
 public class User {
-    public String name;
-    public String email;
+    // Variables
+    public String name; // user name
+    public String email; // user email
 
-    public  User(){}
+    // Constructors
+    public User() {
+    }
 
     public User(String name, String email) {
         this.name = name;
         this.email = email;
     }
 
+    // Getters and setters
     public String getName() {
         return name;
     }

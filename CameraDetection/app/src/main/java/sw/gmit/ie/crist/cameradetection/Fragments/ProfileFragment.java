@@ -32,99 +32,111 @@ import java.io.IOException;
 import static android.app.Activity.RESULT_OK;
 
 import sw.gmit.ie.crist.cameradetection.Enums.ImageReq;
-import sw.gmit.ie.crist.cameradetection.Models.Profile;
+import sw.gmit.ie.crist.cameradetection.Models.ProfileInit;
 import sw.gmit.ie.crist.cameradetection.Models.UploadPictures;
 import sw.gmit.ie.crist.cameradetection.R;
 
 public class ProfileFragment extends Fragment {
-    // Firebase Variables
-    private final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
     // Image Upload variables
-    private UploadPictures uploadPictures = new UploadPictures();
+    private UploadPictures uploadPictures = new UploadPictures ();
     private Uri imgURI, photoURI;
     private StorageTask uploadTask;
     private String userDisplayName, personName, pathToFile;
 
     // Firebase Database Variables
-    private StorageReference imageStorageRef;
-    private DatabaseReference imageDatabaseRef;
+    final private FirebaseUser user = FirebaseAuth.getInstance ().getCurrentUser ();
+    private StorageReference imageStorageRef; // Firebase file storage
+    private DatabaseReference imageDatabaseRef; // Firebase real time database storage
 
     // Model
-    private Profile profile = new Profile();
+    private ProfileInit profileInit = new ProfileInit ();
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
-        init(rootView);
+        View rootView = inflater.inflate (R.layout.fragment_profile, container, false);
+        init (rootView); // initializes all the necessary variables
 
-        if (Build.VERSION.SDK_INT >= 23){
-            requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
+        // If the sdk version of the android is bigger or equal to 23
+        // then the user receives a permission request on whether or not
+        // they allow the use of the camera in this application.
+        // Permission request is only asked once per mobile app.
+        if (Build.VERSION.SDK_INT >= 23) {
+            requestPermissions (new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
         }
 
-        pickImage();
+        pickImage ();
         return rootView;
     }
 
+
     /************************************************
-                        Init
+     Init
      ***********************************************/
     private void init(View rootView) {
-        getActivity().setTitle("Home");
-        initVariables(rootView);
+        getActivity ().setTitle ("Home"); // sets the name of the page as "Home"
+        initVariables (rootView); // It takes the XML variable values and initializes them to java variables
     }
 
+
     /************************************************
-                Initialize Variables
+     Initialize Variables
      ***********************************************/
     private void initVariables(View rootView) {
-        profile.setBtnChooseImg((ImageButton) rootView.findViewById (R.id.chooseImgBtn));
-        profile.setBtnUploadImg((ImageButton) rootView.findViewById (R.id.uploadImgBtn));
-        profile.setBtnTakePic((ImageButton) rootView.findViewById (R.id.takeImgBtn));
-        profile.setImgView((ImageView) rootView.findViewById (R.id.imageView));
-        profile.setImgText((EditText) rootView.findViewById (R.id.imgName));
-        profile.setImgProgressBar((ProgressBar) rootView.findViewById (R.id.imgProgress));
+        profileInit.setBtnChooseImg ((ImageButton) rootView.findViewById (R.id.chooseImgBtn));
+        profileInit.setBtnUploadImg ((ImageButton) rootView.findViewById (R.id.uploadImgBtn));
+        profileInit.setBtnTakePic ((ImageButton) rootView.findViewById (R.id.takeImgBtn));
+        profileInit.setImgView ((ImageView) rootView.findViewById (R.id.imageView));
+        profileInit.setImgText ((EditText) rootView.findViewById (R.id.imgName));
+        profileInit.setImgProgressBar ((ProgressBar) rootView.findViewById (R.id.imgProgress));
     }
 
+
     /************************************************
-                        Pick Image
+     Pick Image
      ***********************************************/
     private void pickImage() {
-        profile.getBtnChooseImg().setOnClickListener(new View.OnClickListener() {
+        // Choose an image (Gallery)
+        profileInit.getBtnChooseImg ().setOnClickListener (new View.OnClickListener () {
             @Override
             public void onClick(View v) {
-                if (isTextEmpty() == false){
-                    uploadPictures.setName(profile.getImgText().getText().toString());
-                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    intent.setType("image/*");
-                    startActivityForResult(intent, ImageReq.CHOOSE_IMAGE_REQUEST.getValue());
+                // If the text input is not empty then allow the user to choose a photo
+                if (isTextEmpty () == false) {
+                    uploadPictures.setName (profileInit.getImgText ().getText ().toString ()); // it gets the image text
+                    Intent intent = new Intent (Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI); // sets the action as pick (Gallery)
+                    intent.setType ("image/*"); // it sents you to the image/gallery folder in the phone
+                    startActivityForResult (intent, ImageReq.CHOOSE_IMAGE_REQUEST.getValue ()); // starts the activity to choose an image
                 }
-                userFirebaseStorage();
-                uploadImage();
+                userFirebaseStorage (); // sets up the firebase storage folders
+                uploadImage (); // uploads the image
             }
         });
 
-        profile.getBtnTakePic().setOnClickListener (new View.OnClickListener () {
+        // Take a photo (Camera)
+        profileInit.getBtnTakePic ().setOnClickListener (new View.OnClickListener () {
             @Override
             public void onClick(View v) {
-                if (isTextEmpty() == false){
-                    uploadPictures.setName(profile.getImgText().getText().toString());
-                    personName = profile.getImgText().getText().toString();
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    if (intent.resolveActivity(getActivity().getPackageManager()) != null){
-                        File picture = createPhotoFile();
+                // If the text input is not empty then allow the user to take a photo
+                if (isTextEmpty () == false) {
+                    uploadPictures.setName (profileInit.getImgText ().getText ().toString ()); // it gets the image text
+                    personName = profileInit.getImgText ().getText ().toString ();
+                    Intent intent = new Intent (MediaStore.ACTION_IMAGE_CAPTURE); // sets the action as capture (Camera)
+                    // if the intent package manager is not null then allow the user to take a photo
+                    if (intent.resolveActivity (getActivity ().getPackageManager ()) != null) {
+                        File picture = createPhotoFile (); // gets the name of the picture
 
-
-                        if (picture != null){
-                            pathToFile = picture.getAbsolutePath();
-                            photoURI = FileProvider.getUriForFile(getActivity().getApplicationContext(), "sw.gmit.ie.crist.cameradetection.fileprovider", picture);
-                            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                            startActivityForResult(intent, ImageReq.TAKE_IMAGE_REQUEST.getValue());
+                        if (picture != null) {
+                            pathToFile = picture.getAbsolutePath ();
+                            photoURI = FileProvider.getUriForFile (getActivity ().getApplicationContext (),
+                                    "sw.gmit.ie.crist.cameradetection.fileprovider",
+                                    picture); // gets the uri of the photo using fileprovider
+                            intent.putExtra (MediaStore.EXTRA_OUTPUT, photoURI); // puts the uri as an extra output onto the intent
+                            startActivityForResult (intent, ImageReq.TAKE_IMAGE_REQUEST.getValue ()); // starts activity to take a photo
                         }
                     }
-                    userFirebaseStorage();
-                    uploadImage();
+                    userFirebaseStorage (); // sets up the firebase storage folders
+                    uploadImage (); // uploads the image
                 }
             }
         });
@@ -132,139 +144,169 @@ public class ProfileFragment extends Fragment {
 
     }
 
+
     /************************************************
-                Create Photo File
+     Create Photo File
      ***********************************************/
     private File createPhotoFile() {
-
-        String pictureFile = uploadPictures.getName();
-        File storageDir = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_PICTURES); // getExternalStoragePublicDirectory
-        File image = null;
+        String pictureFile = uploadPictures.getName (); // get the name of the picture
+        File storageDir = Environment.getExternalStoragePublicDirectory (Environment.DIRECTORY_PICTURES); // get the mobile directory with the saved image in it
+        File image = null; // initializes the file/image
 
         try {
-            image = File.createTempFile(pictureFile,  ".jpg", storageDir);
+            image = File.createTempFile (pictureFile, ".jpg", storageDir); // sets a name to the image (<Image Input text>.jpg)
         } catch (IOException e) {
-            Log.d("mylog", "Exception: " +e.toString());
+            Log.d ("mylog", "Exception: " + e.toString ()); // it gives out an exception
         }
 
-        return image;
+        return image; // returns the name of the image
     }
 
-    private void userFirebaseStorage(){
-        userDisplayName = user.getDisplayName();
-        personName = uploadPictures.getName();
-        imageStorageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + personName);
-        imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName);
+
+    /************************************************
+     User Firebase Storage
+     ***********************************************/
+    private void userFirebaseStorage() {
+        userDisplayName = user.getDisplayName (); // get the user display name
+        personName = uploadPictures.getName (); // get the name of the person in the picture
+        imageStorageRef = FirebaseStorage.getInstance ().getReference ("images/" + userDisplayName + "/" + personName); // folder arrangement in firebase storage
+        imageDatabaseRef = FirebaseDatabase.getInstance ().getReference ("images/" + userDisplayName);  // folder arrangement in firebase database
     }
 
-     private boolean isTextEmpty() {
-        if( TextUtils.isEmpty(profile.getImgText().getText())){
-            profile.getImgText().setError( "Enter person's name" );
+
+    /************************************************
+     Empty Input Text Boolean
+     ***********************************************/
+    private boolean isTextEmpty() {
+        // If the text input is empty, then show an error
+        // otherwise get the text from the input
+        // and set it as the Image Text
+        // which is the name of the person in the picture (used for sorting out folders in the firebase storage)
+        if (TextUtils.isEmpty (profileInit.getImgText ().getText ())) {
+            profileInit.getImgText ().setError ("Enter person's name"); // it gives out an error of there is no input
             return true;
         } else {
-            profile.setImgText(profile.getImgText());
+            profileInit.setImgText (profileInit.getImgText ());
             return false;
         }
     }
 
+
+    /************************************************
+     Upload Image
+     ***********************************************/
     private void uploadImage() {
-        profile.getBtnUploadImg().setOnClickListener(new View.OnClickListener() {
+        // Gets the upload image button and
+        // do nothing if the upload task is still in progress
+        // otherwise upload the image
+        profileInit.getBtnUploadImg ().setOnClickListener (new View.OnClickListener () {
             @Override
             public void onClick(View v) {
-                if (uploadTask != null && uploadTask.isInProgress()){
+                if (uploadTask != null && uploadTask.isInProgress ()) {
+                } else if (imgURI != null) {
+                    uploadFile ();
                 } else {
-                    uploadFile();
+                    showMessage ("No file selected");
                 }
-
             }
         });
 
     }
 
+
+    /************************************************
+     File Extensions
+     ***********************************************/
     private String getFileExtension(Uri uri) {
         // get extension from all files
-        ContentResolver cR = getActivity().getContentResolver();
-        MimeTypeMap mime = MimeTypeMap.getSingleton();
-        return mime.getExtensionFromMimeType(cR.getType(uri));
+        ContentResolver cR = getActivity ().getContentResolver ();
+        MimeTypeMap mime = MimeTypeMap.getSingleton ();
+        return mime.getExtensionFromMimeType (cR.getType (uri));
     }
 
 
+    /************************************************
+     Upload File
+     ***********************************************/
     private void uploadFile() {
-        String userDisplayName = user.getDisplayName();
-        final String name = uploadPictures.getName();
-        final StorageReference imageStorageRef = FirebaseStorage.getInstance().getReference("images/" +userDisplayName+ "/" + name);
-        final DatabaseReference imageDatabaseRef = FirebaseDatabase.getInstance().getReference("images/" +userDisplayName);
+        // create a file reference for the image uri
+        final StorageReference fileReference = imageStorageRef.child (System.currentTimeMillis () + "." + getFileExtension (imgURI));
 
-        if (uploadTask != null && uploadTask.isInProgress()) {}
-        else if (imgURI != null) {
-            final StorageReference fileReference = imageStorageRef.child(System.currentTimeMillis() + "." + getFileExtension(imgURI));
-
-            uploadTask = fileReference.putFile(imgURI)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+        uploadTask = fileReference.putFile (imgURI)
+                .addOnSuccessListener (new OnSuccessListener<UploadTask.TaskSnapshot> () {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         //  Successful upload
                         // Code adapted from: https://stackoverflow.com/questions/50570893/after-upload-a-file-in-android-firebase-storage-how-get-the-file-download-url-g/50572357
-                        fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        fileReference.getDownloadUrl ().addOnSuccessListener (new OnSuccessListener<Uri> () {
                             @Override
                             public void onSuccess(Uri uri) {
-                                Handler handler = new Handler();
-                                handler.postDelayed(new Runnable() {
+                                Handler handler = new Handler ();
+                                handler.postDelayed (new Runnable () {
                                     @Override
                                     public void run() {
-                                        profile.getImgProgressBar().setProgress(0);
-
+                                        profileInit.getImgProgressBar ().setProgress (0);
                                     }
                                 }, 500);
 
-                                UploadPictures uploadPictures = new UploadPictures(profile.getImgText().getText().toString().trim(),
-                                       uri.toString());
-                                String uploadId = imageDatabaseRef.push().getKey();
-
-                                imageDatabaseRef.child(uploadId).setValue(uploadPictures);
+                                // set the name and uri of the picture in the constructor from the upload pictures model
+                                UploadPictures uploadPictures = new UploadPictures (profileInit.getImgText ().getText ().toString ().trim (),
+                                        uri.toString ());
+                                // create an ID for each picture
+                                String uploadId = imageDatabaseRef.push ().getKey ();
+                                // upload each picture to the database under its own generated ID
+                                imageDatabaseRef.child (uploadId).setValue (uploadPictures);
                             }
                         });
-                    };
+                    }
+
+                    ;
                 })
-                .addOnFailureListener(new OnFailureListener() {
+                .addOnFailureListener (new OnFailureListener () {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         //  Failed upload
-                        showMessage("Failed to upload image");
+                        showMessage ("Failed to upload image");
 
                     }
                 })
-                .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                .addOnProgressListener (new OnProgressListener<UploadTask.TaskSnapshot> () {
                     @Override
                     public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
                         //  Progressing upload - update progress bar with current progress
-                        double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
-                        profile.getImgProgressBar().setProgress((int) progress);
+                        double progress = (100.0 * taskSnapshot.getBytesTransferred () / taskSnapshot.getTotalByteCount ());
+                        profileInit.getImgProgressBar ().setProgress ((int) progress);
                     }
                 });
 
-        } else {
-            showMessage("No file selected");
-        }
+
     }
 
+
+    /************************************************
+     Activity Result
+     ***********************************************/
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult (requestCode, resultCode, data);
 
         if (resultCode == RESULT_OK) {
-            if (requestCode == ImageReq.CHOOSE_IMAGE_REQUEST.getValue() && data != null && data.getData() != null){
-                imgURI = data.getData();
-                profile.getImgView().setImageURI(imgURI);
-            } else if (requestCode == ImageReq.TAKE_IMAGE_REQUEST.getValue()){
-                imgURI = photoURI;
-                profile.getImgView().setImageURI(imgURI);
+            if (requestCode == ImageReq.CHOOSE_IMAGE_REQUEST.getValue () && data != null && data.getData () != null) {
+                imgURI = data.getData (); // gets the uri
+                profileInit.getImgView ().setImageURI (imgURI); // sets image uri
+            } else if (requestCode == ImageReq.TAKE_IMAGE_REQUEST.getValue ()) {
+                imgURI = photoURI; // gets the uri
+                profileInit.getImgView ().setImageURI (imgURI); // sets image uri
             }
 
         }
     }
 
+
+    /************************************************
+     Toast Message Method
+     ***********************************************/
     private void showMessage(String message) {
-        Toast.makeText(getActivity().getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+        Toast.makeText (getActivity ().getApplicationContext (), message, Toast.LENGTH_SHORT).show ();
     }
 }

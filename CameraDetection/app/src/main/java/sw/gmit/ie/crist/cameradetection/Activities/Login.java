@@ -8,129 +8,158 @@ import android.view.View;
 import android.widget.*;
 
 import com.google.android.gms.tasks.*;
-import com.google.firebase.auth.*;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
+import sw.gmit.ie.crist.cameradetection.Models.LoginInit;
 import sw.gmit.ie.crist.cameradetection.R;
 import sw.gmit.ie.crist.cameradetection.Readable.Signeable;
 
 public class Login extends AppCompatActivity {
-    // Login variables
-    private ButtonVisibility bv = new ButtonVisibility();
-    private EditText userEmail, userPass;
-    private Button btnLogin, btnRegActivity;
-    private ProgressBar loginProgress;
+    // Login
+    private LoginInit logInit = new LoginInit ();
+    private ButtonVisibility btnVisibility = new ButtonVisibility ();
 
     // Firebase variables
-    private FirebaseAuth mAuth;
+    final private FirebaseAuth mAuth = FirebaseAuth.getInstance (); // authentification
+    final private FirebaseUser user = mAuth.getInstance ().getCurrentUser (); // user
 
     // Redirect variables
     private Intent HomeActivity, RegisterActivity;
     private Redirect redirect;
 
     // Class Variables
-    private Signeable signeable = new Signeable();
-    private Home home = new Home();
+    private Signeable signeable = new Signeable ();
 
     @Override
     protected void onStart() {
-        super.onStart();
+        super.onStart ();
         // If the user is already connect then redirect him/her redirect user to the home page
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (signeable.getSignedIn() == true && user != null){    // or if the user does not exist
-            updateHomeUI();
-//            showMessage(user.getUid());
+        if (signeable.getSignedIn () == true && user != null) {    // or if the user does not exist
+            updateHomeUI ();
         }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);            // it opens the login activity file
-        setTitle("Login");
-        initVariables();                                    // initializes login variables
-
-        loginProgress.setVisibility(View.INVISIBLE);        // progress bar visibility is initially invisible
-
-        mAuth = FirebaseAuth.getInstance();                 // firebase authentification instance
-
-        registerActivity();                                 // user can register if they press the registration button
-        loginActivity();                                    // if the user isn't already connect - redirect to login page so that they can log in
+        super.onCreate (savedInstanceState);
+        init ();                                     // general initialization - all initializations are called in this method
+        registerActivity ();                         // user can register if they press the registration button
+        login ();                                    // if the user isn't already connect - redirect to login page so that they can log in
 
     }
 
+    /************************************************
+     Init
+     ***********************************************/
+    private void init() {
+        setContentView (R.layout.activity_login);    // it opens the login activity file
+        setTitle ("Login");                          // set Activity Title
+        initVariables ();                            // initialize variables
+        initBtn ();                                  // initialize Login Button and Progress Bar (Visible/Invisible)
+    }
+
+    /************************************************
+     Initialize Variables
+     ***********************************************/
     private void initVariables() {
-        userEmail = findViewById(R.id.logEmail);            // email
-        userPass = findViewById(R.id.regName);              // password
-        btnLogin = findViewById(R.id.logBtn);               // login button
-        loginProgress = findViewById(R.id.logBar);          // progress bar
-        btnRegActivity = findViewById(R.id.regActivityBtn); // registration button
+        logInit.setUserEmail ((EditText) findViewById (R.id.logEmail));
+        logInit.setUserPass ((EditText) findViewById (R.id.regName));
+        logInit.setLoginBtn ((Button) findViewById (R.id.logBtn));
+        logInit.setLoginProgress ((ProgressBar) findViewById (R.id.logBar));
+        logInit.setBtnRegActivity ((Button) findViewById (R.id.regActivityBtn));
     }
 
+    /************************************************
+     Init Button
+     ***********************************************/
+    private void initBtn() {
+        btnVisibility.showBtn (logInit.getLoginBtn (), logInit.getLoginProgress ());
+    }
+
+    /************************************************
+     Registration
+     ***********************************************/
     private void registerActivity() {
         // user is redirected to the registration activity when the button is clicked
-        btnRegActivity.setOnClickListener(new View.OnClickListener(){
+        logInit.getBtnRegActivity ().setOnClickListener (new View.OnClickListener () {
             @Override
-            public void onClick(View view){
-                updateRegisterUI();
+            public void onClick(View view) {
+                updateRegisterUI ();
             }
         });
     }
 
-    private void loginActivity() {
-        btnLogin.setOnClickListener(new View.OnClickListener(){
+    /************************************************
+     Login
+     ***********************************************/
+    private void login() {
+        logInit.getLoginBtn ().setOnClickListener (new View.OnClickListener () {
             @Override
-            public void onClick(View view){
+            public void onClick(View view) {
                 // Stores the values from the initialized variables into strings
-                final String email = userEmail.getText().toString();
-                final String password = userPass.getText().toString();
-
-                bv.hideBtn(btnLogin, loginProgress);
+                final String email = logInit.getUserEmail ().getText ().toString ();
+                final String password = logInit.getUserPass ().getText ().toString ();
+                btnVisibility.hideBtn (logInit.getLoginBtn (), logInit.getLoginProgress ());
 
                 // If there is no input then show a message
-                if (email.isEmpty() || password.isEmpty()){
-                    showMessage("Please verify all fields");
+                if (email.isEmpty () || password.isEmpty ()) {
+                    showMessage ("Please verify all fields");
 
-                    bv.showBtn(btnLogin, loginProgress);
+                    btnVisibility.showBtn (logInit.getLoginBtn (), logInit.getLoginProgress ());
                 } else {
                     // signs in the user
-                    getSignIn(email, password);
+                    getSignIn (email, password);
                 }
             }
         });
 
     }
 
+    /************************************************
+     Verify User Authentification
+     ***********************************************/
     private void getSignIn(String email, String password) {
-        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+        mAuth.signInWithEmailAndPassword (email, password).addOnCompleteListener (new OnCompleteListener<AuthResult> () {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()){
-                    bv.hideBtn(btnLogin, loginProgress);
-                    updateHomeUI();
+                if (task.isSuccessful ()) {
+                    btnVisibility.hideBtn (logInit.getLoginBtn (), logInit.getLoginProgress ());
+                    updateHomeUI ();
                 } else {
-                    showMessage(task.getException().getMessage());
-                    bv.showBtn(btnLogin, loginProgress);
+                    showMessage (task.getException ().getMessage ());
+                    btnVisibility.showBtn (logInit.getLoginBtn (), logInit.getLoginProgress ());
                 }
             }
         });
     }
 
+    /************************************************
+     Registration Redirect
+     ***********************************************/
     private void updateRegisterUI() {
-        RegisterActivity = new Intent(getApplicationContext(),Register.class);  // it gets the registration activity class
-        startActivity(RegisterActivity);                                        // it redirects the user to the registration activity
-        finish();                                                               // finishes this activity
+        RegisterActivity = new Intent (getApplicationContext (), Register.class);  // it gets the registration activity class
+        startActivity (RegisterActivity);                                        // it redirects the user to the registration activity
+        finish ();                                                               // finishes this activity
     }
 
+    /************************************************
+     Home Redirect
+     ***********************************************/
     private void updateHomeUI() {
-        HomeActivity = new Intent(getApplicationContext(),Home.class);          // it gets the home activity class
-        startActivity(HomeActivity);                                            // it redirects the user to the home activity
-        signeable.setSignedIn(true);                                            // user is already signed in
-        finish();                                                               // finishes this activity
+        HomeActivity = new Intent (getApplicationContext (), Home.class);          // it gets the home activity class
+        startActivity (HomeActivity);                                            // it redirects the user to the home activity
+        signeable.setSignedIn (true);                                            // user is already signed in
+        finish ();                                                               // finishes this activity
     }
 
-    // method that shows a toast message
+
+    /************************************************
+     Toast Message Method
+     ***********************************************/
     private void showMessage(String message) {
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+        Toast.makeText (getApplicationContext (), message, Toast.LENGTH_LONG).show ();
     }
 
 }

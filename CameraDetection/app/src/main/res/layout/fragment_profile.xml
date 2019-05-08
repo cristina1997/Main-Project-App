@@ -43,9 +43,9 @@
         android:id="@+id/uploadImgBtn"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
         android:layout_above="@id/imgProgress"
-        app:srcCompat="@drawable/ic_upload"/>
+        android:layout_alignParentStart="true"
+        app:srcCompat="@drawable/ic_upload" />
 
     <ImageButton
         android:id="@+id/chooseImgBtn"
@@ -59,9 +59,9 @@
         android:id="@+id/takeImgBtn"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
         android:layout_above="@id/imgProgress"
-        app:srcCompat="@drawable/ic_take_photo"/>
+        android:layout_alignParentEnd="true"
+        app:srcCompat="@drawable/ic_take_photo" />
 
     <ProgressBar
         android:id="@+id/imgProgress"

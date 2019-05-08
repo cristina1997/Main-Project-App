@@ -7,12 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Video {
-    private String name;
-    private String personType;
-    private String personTypeUnchanged;
+    // Variables
+    private String name; // person name
+    private String personType; // person type: either known name with a "-" or the "unknown" value
+    private String personTypeUnchanged; // person type unchanged: known name with a space
 
-    public Video() {}
-
+    // Constructors
+    public Video() {
+    }
 
     public Video(String name, String personType, String personTypeUnchanged) {
         this.name = name;
@@ -20,6 +22,7 @@ public class Video {
         this.personTypeUnchanged = personTypeUnchanged;
     }
 
+    // Getters and setters
     public String getName() {
         return name;
     }

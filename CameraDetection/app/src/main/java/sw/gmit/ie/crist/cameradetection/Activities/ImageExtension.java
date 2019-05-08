@@ -14,6 +14,6 @@ public class ImageExtension extends AppCompatActivity {
         // get extension from all files
         ContentResolver cR = getContentResolver ();
         MimeTypeMap mime = MimeTypeMap.getSingleton ();
-        return mime.getExtensionFromMimeType(cR.getType(uri));
+        return mime.getExtensionFromMimeType (cR.getType (uri));
     }
 }

@@ -4,15 +4,20 @@ import android.app.Activity;
 import android.widget.Toast;
 
 public class UploadPictures {
-    private String name, imgUrl;
+    // Variables
+    private String name, // person name
+            imgUrl; // image URL
 
-    public UploadPictures(){}
+    // Constructors
+    public UploadPictures() {
+    }
 
     public UploadPictures(String name, String imgUrl) {
         this.name = name;
         this.imgUrl = imgUrl;
     }
 
+    // Getters and setters
     public String getName() {
         return name;
     }
@@ -29,8 +34,9 @@ public class UploadPictures {
         this.imgUrl = imgUrl;
     }
 
+    // output the name of the person and the url to make sure they are correct
     @Override
     public String toString() {
-        return "\nName: " +name + "\nImg Url: " + imgUrl;
+        return "\nName: " + name + "\nImg Url: " + imgUrl;
     }
 }
